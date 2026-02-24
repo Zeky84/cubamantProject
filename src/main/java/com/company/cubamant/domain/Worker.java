@@ -19,5 +19,35 @@ public class Worker extends User {
 	@Column(name = "created_at_worker", nullable = false, updatable = false)
 	private Instant createdAtWorker = Instant.now();
 
-	// Add other worker-specific fields here
+	public String getRole() {
+		return role;
+	}
+
+	public void setRole(String role) {
+		this.role = role;
+	}
+
+	public BigDecimal getHourlyRate() {
+		return hourlyRate;
+	}
+
+	public void setHourlyRate(BigDecimal hourlyRate) {
+		this.hourlyRate = hourlyRate;
+	}
+
+	public boolean isSupervisor() {
+		return isSupervisor;
+	}
+
+	public void setSupervisor(boolean supervisor) {
+		isSupervisor = supervisor;
+	}
+
+	public Instant getCreatedAtWorker() {
+		return createdAtWorker;
+	}
+
+	public void setCreatedAtWorker(Instant createdAtWorker) {
+		this.createdAtWorker = createdAtWorker;
+	}
 }

@@ -2,7 +2,10 @@ package com.company.cubamant.domain;
 import jakarta.persistence.*;
 
 @Entity
-@Table(name = "authorities")
+@Table(name = "authorities",
+		uniqueConstraints = {
+				@UniqueConstraint(columnNames = {"user_id", "authority"})
+		})
 public class Authority {
 
 	@Id
@@ -24,5 +27,27 @@ public class Authority {
 		this.user = user;
 	}
 
-	// getters & setters
+	public Long getId() {
+		return id;
+	}
+
+	public void setId(Long id) {
+		this.id = id;
+	}
+
+	public String getAuthority() {
+		return authority;
+	}
+
+	public void setAuthority(String authority) {
+		this.authority = authority;
+	}
+
+	public User getUser() {
+		return user;
+	}
+
+	public void setUser(User user) {
+		this.user = user;
+	}
 }
