@@ -1,11 +1,24 @@
 package com.company.cubamant.domain;
 
 import jakarta.persistence.*;
-import java.time.Instant;
+import lombok.Getter;
 
+import java.time.Instant;
+import java.util.List;
+
+@Getter
 @Entity
 @Table(name = "customers")
 public class Customer extends User {
+
+	@Column(name = "company_name")
+	private String companyName;
+
+	@OneToMany(mappedBy = "customer", fetch = FetchType.LAZY)
+	private List<Project> projects;
+
+	@OneToMany(mappedBy = "customer", fetch = FetchType.LAZY)
+	private List<Review> reviews;
 
 	@Column(name = "shipping_address")
 	private String shippingAddress;
@@ -16,29 +29,24 @@ public class Customer extends User {
 	@Column(name = "created_at_customer", nullable = false, updatable = false)
 	private Instant createdAtCustomer = Instant.now();
 
-	public String getShippingAddress() {
-		return shippingAddress;
+	public void setCompanyName(String companyName) {
+		this.companyName = companyName;
+	}
+
+	public void setProjects(List<Project> projects) {
+		this.projects = projects;
+	}
+
+	public void setReviews(List<Review> reviews) {
+		this.reviews = reviews;
 	}
 
 	public void setShippingAddress(String shippingAddress) {
 		this.shippingAddress = shippingAddress;
 	}
 
-	public boolean isNewsletterSubscribed() {
-		return newsletterSubscribed;
-	}
-
 	public void setNewsletterSubscribed(boolean newsletterSubscribed) {
 		this.newsletterSubscribed = newsletterSubscribed;
 	}
 
-	public Instant getCreatedAtCustomer() {
-		return createdAtCustomer;
-	}
-
-	public void setCreatedAtCustomer(Instant createdAtCustomer) {
-		this.createdAtCustomer = createdAtCustomer;
-	}
-
-	// Add other customer-specific fields here
 }

@@ -1,30 +1,48 @@
 package com.company.cubamant.domain;
 import jakarta.persistence.*;
+import org.springframework.security.core.GrantedAuthority;
+
+import java.util.Objects;
 
 @Entity
-@Table(name = "authorities",
-		uniqueConstraints = {
-				@UniqueConstraint(columnNames = {"user_id", "authority"})
-		})
-public class Authority {
-
-	@Id
-	@GeneratedValue(strategy = GenerationType.IDENTITY)
+public class Authority implements GrantedAuthority {
+	@Id @GeneratedValue(strategy = GenerationType.IDENTITY)
 	private Long id;
-
-	@Column(nullable = false)
-	private String authority; // ROLE_USER, ROLE_ADMIN, etc.
-
-	@ManyToOne(fetch = FetchType.LAZY)
-	@JoinColumn(name = "user_id", nullable = false)
+	@Enumerated(EnumType.STRING)
+	@Column(name = "role", nullable = false)
+	private Role authority;
+	@ManyToOne
+	@JoinColumn(name = "user_id")
 	private User user;
 
-	// constructors
-	public Authority() {}
+	public Authority () {}
 
-	public Authority(String authority, User user) {
+	public Authority(Role authority) {
+		super();
 		this.authority = authority;
+	}
+
+	public Authority(Role auth, User user) {
+		this.authority = auth;
 		this.user = user;
+	}
+
+	@Override
+	public String toString() {
+		return "Authority [id=" + id + ", authority=" + authority + "]";
+	}
+
+	@Override
+	public boolean equals(Object o) {
+		if (this == o) return true;
+		if (o == null || getClass() != o.getClass()) return false;
+		Authority authority = (Authority) o;
+		return Objects.equals(id, authority.id);
+	}
+
+	@Override
+	public int hashCode() {
+		return Objects.hash(id);
 	}
 
 	public Long getId() {
@@ -35,19 +53,20 @@ public class Authority {
 		this.id = id;
 	}
 
-	public String getAuthority() {
-		return authority;
-	}
-
-	public void setAuthority(String authority) {
-		this.authority = authority;
-	}
-
 	public User getUser() {
 		return user;
 	}
 
 	public void setUser(User user) {
 		this.user = user;
+	}
+
+	@Override
+	public String getAuthority() {
+		return authority.name();
+	}
+
+	public void setAuthority(Role authority) {
+		this.authority = authority;
 	}
 }

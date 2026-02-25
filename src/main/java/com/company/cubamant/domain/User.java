@@ -1,10 +1,13 @@
 package com.company.cubamant.domain;
 import jakarta.persistence.*;
+import lombok.Getter;
+
 import java.time.Instant;
 import java.util.ArrayList;
 import java.util.List;
 
 @Entity
+@Getter
 @Table(name = "users")
 @DiscriminatorColumn(name = "user_type")
 @Inheritance(strategy = InheritanceType.JOINED)
@@ -17,12 +20,15 @@ public class User {
 	@Column(name = "first_name", nullable = false)
 	private String firstName;
 
+	@Getter
 	@Column(name = "last_name", nullable = false)
 	private String lastName;
 
+	@Getter
 	@Column(unique = true, nullable = false)
 	private String email;
 
+	@Getter
 	@Column(nullable = false)
 	private String password;
 
@@ -34,43 +40,24 @@ public class User {
 
 	// Relationships
 
+	@Getter
 	@OneToMany(mappedBy = "user", cascade = CascadeType.ALL, orphanRemoval = true)
 	private List<Authority> authorities = new ArrayList<>();
 
-	public Long getId() {
-		return id;
-	}
-
 	public void setId(Long id) {
 		this.id = id;
-	}
-
-	public String getFirstName() {
-		return firstName;
 	}
 
 	public void setFirstName(String firstName) {
 		this.firstName = firstName;
 	}
 
-	public String getLastName() {
-		return lastName;
-	}
-
 	public void setLastName(String lastName) {
 		this.lastName = lastName;
 	}
 
-	public String getEmail() {
-		return email;
-	}
-
 	public void setEmail(String email) {
 		this.email = email;
-	}
-
-	public String getPassword() {
-		return password;
 	}
 
 	public void setPassword(String password) {
@@ -85,18 +72,10 @@ public class User {
 		isActive = active;
 	}
 
-	public Instant getCreatedAt() {
-		return createdAt;
-	}
-
 	public void setCreatedAt(Instant createdAt) {
 		this.createdAt = createdAt;
 	}
 
-
-	public List<Authority> getAuthorities() {
-		return authorities;
-	}
 
 	public void setAuthorities(List<Authority> authorities) {
 		this.authorities = authorities;
