@@ -6,7 +6,7 @@ import java.math.BigDecimal;
 import java.time.Instant;
 
 @Entity
-@Getter
+
 @Table(name = "workers")
 public class Worker extends User {
 
@@ -14,17 +14,25 @@ public class Worker extends User {
 	private WorkerClassification jobTitle; // e.g., “engineer”, “admin”
 
 	@Getter
-	@Column(name = "hourly_rate")
+	@Column(name = "hourly_rate",nullable = false)
 	private BigDecimal hourlyRate;
 
 	@Column(name = "is_supervisor", nullable = false)
 	private boolean isSupervisor = false;
 
-	@Column(name = "created_at_worker", nullable = false, updatable = false)
-	private Instant createdAtWorker = Instant.now();
+	@Column(name = "created_at", nullable = false, updatable = false)
+	private Instant createdAt = Instant.now();
+
+	public WorkerClassification getJobTitle() {
+		return jobTitle;
+	}
 
 	public void setJobTitle(WorkerClassification jobTitle) {
 		this.jobTitle = jobTitle;
+	}
+
+	public BigDecimal getHourlyRate() {
+		return hourlyRate;
 	}
 
 	public void setHourlyRate(BigDecimal hourlyRate) {
@@ -39,7 +47,11 @@ public class Worker extends User {
 		isSupervisor = supervisor;
 	}
 
-	public void setCreatedAtWorker(Instant createdAtWorker) {
-		this.createdAtWorker = createdAtWorker;
+	public Instant getCreatedAt() {
+		return createdAt;
+	}
+
+	public void setCreatedAt(Instant createdAt) {
+		this.createdAt = createdAt;
 	}
 }

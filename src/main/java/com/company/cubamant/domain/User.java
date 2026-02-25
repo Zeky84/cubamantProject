@@ -1,83 +1,117 @@
 package com.company.cubamant.domain;
-import jakarta.persistence.*;
-import lombok.Getter;
 
-import java.time.Instant;
-import java.util.ArrayList;
-import java.util.List;
+import java.util.Collection;
+import java.util.HashSet;
+import java.util.Set;
+
+import org.springframework.security.core.GrantedAuthority;
+import org.springframework.security.core.userdetails.UserDetails;
+
+import jakarta.persistence.*;
+import lombok.*;
 
 @Entity
-@Getter
 @Table(name = "users")
-@DiscriminatorColumn(name = "user_type")
-@Inheritance(strategy = InheritanceType.JOINED)
-public class User {
+@Inheritance(strategy = InheritanceType.JOINED)  // ← ADD THIS
+@DiscriminatorColumn(name = "user_type")         // ← ADD THIS
+@Builder
+@NoArgsConstructor
+@AllArgsConstructor
+public class User implements UserDetails {
 
 	@Id
 	@GeneratedValue(strategy = GenerationType.IDENTITY)
 	private Long id;
 
-	@Column(name = "first_name", nullable = false)
-	private String firstName;
-
-	@Getter
-	@Column(name = "last_name", nullable = false)
-	private String lastName;
-
-	@Getter
 	@Column(unique = true, nullable = false)
 	private String email;
 
-	@Getter
 	@Column(nullable = false)
 	private String password;
 
-	@Column(name = "is_active", nullable = false)
-	private boolean isActive = true;
+	private String firstName;
+	private String lastName;
 
-	@Column(name = "created_at", nullable = false, updatable = false)
-	private Instant createdAt = Instant.now();
+	@OneToMany(mappedBy = "user", cascade = CascadeType.ALL, fetch = FetchType.EAGER)
+	@Builder.Default
+	private Set<Authority> authoritySet = new HashSet<>();
 
-	// Relationships
+	@Override
+	public Collection<? extends GrantedAuthority> getAuthorities() {
+		return authoritySet;
+	}
 
-	@Getter
-	@OneToMany(mappedBy = "user", cascade = CascadeType.ALL, orphanRemoval = true)
-	private List<Authority> authorities = new ArrayList<>();
+	public Set<Authority> getAuthoritySet() {
+		return authoritySet;
+	}
+
+	@Override
+	public String getUsername() {
+		return email;
+	}
+
+	@Override
+	public boolean isAccountNonExpired() {
+		return true;
+	}
+
+	@Override
+	public boolean isAccountNonLocked() {
+		return true;
+	}
+
+	@Override
+	public boolean isCredentialsNonExpired() {
+		return true;
+	}
+
+	@Override
+	public boolean isEnabled() {
+		return true;
+	}
+
+	public Long getId() {
+		return id;
+	}
 
 	public void setId(Long id) {
 		this.id = id;
 	}
 
-	public void setFirstName(String firstName) {
-		this.firstName = firstName;
-	}
-
-	public void setLastName(String lastName) {
-		this.lastName = lastName;
+	public String getEmail() {
+		return email;
 	}
 
 	public void setEmail(String email) {
 		this.email = email;
 	}
 
+	@Override
+	public String getPassword() {
+		return password;
+	}
+
 	public void setPassword(String password) {
 		this.password = password;
 	}
 
-	public boolean isActive() {
-		return isActive;
+	public String getFirstName() {
+		return firstName;
 	}
 
-	public void setActive(boolean active) {
-		isActive = active;
+	public void setFirstName(String firstName) {
+		this.firstName = firstName;
 	}
 
-	public void setCreatedAt(Instant createdAt) {
-		this.createdAt = createdAt;
+	public String getLastName() {
+		return lastName;
 	}
 
+	public void setLastName(String lastName) {
+		this.lastName = lastName;
+	}
 
-	public void setAuthorities(List<Authority> authorities) {
-		this.authorities = authorities;
+	public void setAuthoritySet(Set<Authority> authoritySet) {
+		this.authoritySet = authoritySet;
 	}
 }
