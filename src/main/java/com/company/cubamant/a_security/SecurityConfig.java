@@ -1,8 +1,8 @@
 package com.company.cubamant.a_security;
+import com.company.cubamant.b_service.JwtService;
 import com.company.cubamant.domain.RefreshToken;
-import com.company.cubamant.domain.Role;
 import com.company.cubamant.domain.User;
-import com.company.cubamant.a_security.RefreshTokenService;
+import com.company.cubamant.b_service.RefreshTokenService;
 import com.company.cubamant.b_service.UserService;
 import com.company.cubamant.abc_util.CookieUtils;
 import jakarta.servlet.http.Cookie;
@@ -10,7 +10,6 @@ import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 
 import java.io.IOException;
-import java.util.HashMap;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -74,9 +73,9 @@ public class SecurityConfig {
 								response.sendRedirect("/error?unauthorized=true"))
 				)
 				.authorizeHttpRequests(auth -> auth
-						.requestMatchers("/admin/**").hasRole(Role.ADMIN.name())
-						.requestMatchers("/api/user/**").hasAnyRole(Role.USER.name(), Role.ADMIN.name())
-						.requestMatchers("/homepage", "/registration", "/signin", "/error").permitAll()
+						.requestMatchers("/admin/**").hasAnyAuthority("ROLE_ADMIN", "ADMIN") // Acepta ambos formatos
+						.requestMatchers("/api/user/**").hasAnyAuthority("ROLE_USER", "USER", "ROLE_ADMIN", "ADMIN")
+						.requestMatchers("/", "/signin", "/signup", "/error", "/css/**", "/js/**,").permitAll()
 						.anyRequest().authenticated()
 				)
 				.sessionManagement(session ->
@@ -92,7 +91,7 @@ public class SecurityConfig {
 				)
 				.logout(logout -> logout
 						.logoutUrl("/logout")
-						.logoutSuccessUrl("/homepage")
+						.logoutSuccessUrl("/signin")//todo: change to /homepage once the the home view is set-up
 						.deleteCookies("accessToken", "refreshToken", "JSESSIONID", "XSRF-TOKEN")
 						.invalidateHttpSession(true)
 						.clearAuthentication(true)
@@ -105,6 +104,9 @@ public class SecurityConfig {
 								   HttpServletResponse response,
 								   Authentication authentication) throws IOException {
 		User user = (User) authentication.getPrincipal();
+		user.getAuthorities().forEach(a ->
+				logger.info("ROLE FOUND: {}", a.getAuthority())
+		);
 		String accessToken = jwtService.generateToken( user);
 		RefreshToken refreshToken = refreshTokenService.createRefreshToken(user.getId());
 
@@ -116,10 +118,14 @@ public class SecurityConfig {
 
 		logger.info("Successful authentication for user: {}", user.getUsername());
 
-		if (user.getAuthorities().stream()
-				.anyMatch(auth -> auth.getAuthority().equals("ROLE_ADMIN"))) {
+		boolean isAdmin = user.getAuthorities().stream()
+				.anyMatch(auth -> auth.getAuthority().replace("ROLE_", "").equals("ADMIN"));
+
+		if (isAdmin) {
+			logger.info("Admin detectado. Redirigiendo a /admin/dashboard");
 			response.sendRedirect("/admin/dashboard");
 		} else {
+			logger.info("Usuario detectado. Redirigiendo a /user/dashboard");
 			response.sendRedirect("/user/dashboard");
 		}
 	}

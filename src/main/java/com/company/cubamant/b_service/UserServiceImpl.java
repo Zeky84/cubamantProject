@@ -1,4 +1,5 @@
 package com.company.cubamant.b_service;
+
 import com.company.cubamant.domain.User;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.core.userdetails.UserDetailsService;
@@ -20,39 +21,42 @@ public class UserServiceImpl implements UserService {
 
 	@Override
 	public UserDetailsService userDetailsService() {
-		return new UserDetailsService() {
-			@Override
-			public UserDetails loadUserByUsername(String username) {
-				return userRepository.findByEmail(username)
-						.orElseThrow(() -> new UsernameNotFoundException("User not found"));
-			}
-		};
+		return username -> userRepository.findByEmail(username)
+				.orElseThrow(() -> new UsernameNotFoundException("User not found"));
 	}
 
 	@Override
 	public Optional<User> findUserByEmail(String email) {
-		return Optional.empty();
+		return userRepository.findByEmail(email);  // ← ACTUALLY USE THE REPOSITORY!
 	}
 
-	@Override
-	public void save(User admin) {
 
+	@Override
+	public void save(User user) {
+		userRepository.save(user);  // ← ACTUALLY SAVE!
 	}
 
 	@Override
 	public List<User> findAll() {
-		return null;
+		return userRepository.findAll();  // ← ACTUALLY FETCH ALL!
 	}
 
 	@Override
-	public void elevateUserToAdmin(Long userId) {
-
+	public Optional<User> findUserById(Long id) {
+		return userRepository.findById(id);  // ← ACTUALLY FIND BY ID!
 	}
 
 	@Override
-	public void deleteUser(Long userId) {
-
+	public void elevateUserToAdmin(Long id) {
+		// Implement if needed
 	}
 
+	@Override
+	public void deleteUser(Long id) {
+		userRepository.deleteById(id);  // ← ACTUALLY DELETE!
+	}
 
+	public boolean existsByEmail(String email) {
+		return userRepository.existsByEmail(email);
+	}
 }

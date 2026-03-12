@@ -1,4 +1,4 @@
-package com.company.cubamant.a_security;
+package com.company.cubamant.b_service;
 
 
 import org.springframework.security.core.userdetails.UserDetails;

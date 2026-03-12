@@ -44,7 +44,9 @@ public class User implements UserDetails {
 
 	@Override
 	public Collection<? extends GrantedAuthority> getAuthorities() {
-		return authoritySet;
+		return authoritySet.stream()
+				.map(auth -> new org.springframework.security.core.authority.SimpleGrantedAuthority(auth.getAuthority()))
+				.toList();
 	}
 
 	public Set<Authority> getAuthoritySet() {
@@ -82,6 +84,14 @@ public class User implements UserDetails {
 
 	public void setId(Long id) {
 		this.id = id;
+	}
+
+	public Boolean getActive() {
+		return isActive;
+	}
+
+	public void setActive(Boolean active) {
+		isActive = active;
 	}
 
 	public String getEmail() {
@@ -136,4 +146,5 @@ public class User implements UserDetails {
 	public void setAuthoritySet(Set<Authority> authoritySet) {
 		this.authoritySet = authoritySet;
 	}
+
 }

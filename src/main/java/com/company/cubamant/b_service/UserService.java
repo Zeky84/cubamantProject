@@ -15,7 +15,11 @@ public interface UserService {
 
 	List<User> findAll();
 
-	void elevateUserToAdmin(Long userId);
+	void elevateUserToAdmin(Long id);
 
-	void deleteUser(Long userId);
+	void deleteUser(Long id);
+
+	Optional<User> findUserById(Long id);
+
+	boolean existsByEmail(String email);
 }

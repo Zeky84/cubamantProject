@@ -1,4 +1,4 @@
-package com.company.cubamant.a_security;
+package com.company.cubamant.b_service;
 import java.time.Instant;
 import java.util.Optional;
 import java.util.UUID;
@@ -11,6 +11,7 @@ import com.company.cubamant.domain.RefreshToken;
 import com.company.cubamant.domain.User;
 import com.company.cubamant.ab_payload.RefreshTokenRequest;
 import com.company.cubamant.repository.UserRepository;
+import org.springframework.transaction.annotation.Transactional;
 
 @Service
 public class RefreshTokenService {
@@ -29,6 +30,7 @@ public class RefreshTokenService {
 		this.jwtService = jwtService;
 	}
 
+	@Transactional
 	public RefreshToken createRefreshToken(Long userId) {
 		// Delete old refresh tokens for this user
 		refreshTokenRepository.deleteByUserId(userId);

@@ -33,7 +33,7 @@ public class Project {
 	private Integer scheduledHours; // scheduled total hours by project
 
 	@ManyToOne
-	@JoinColumn(nullable = false)
+	@JoinColumn(name = "customer_id", nullable = false)  // ← ADD THIS
 	private Customer customer;
 
 	@ManyToMany

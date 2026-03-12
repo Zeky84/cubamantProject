@@ -29,11 +29,11 @@ public class Review {
 	private ReviewVisibility visibility;
 
 	@ManyToOne
-	@JoinColumn(nullable = false)
+	@JoinColumn(name = "customer_id", nullable = false)  // ← ADD THIS
 	private Customer customer;
 
 	@ManyToOne
-	@JoinColumn(nullable = false)
+	@JoinColumn(name = "project_id", nullable = false)  // ← ADD THIS
 	private Project project;
 
 	@ElementCollection
