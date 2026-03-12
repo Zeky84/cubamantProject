@@ -1,5 +1,6 @@
 package com.company.cubamant.domain;
 
+import java.time.Instant;
 import java.util.Collection;
 import java.util.HashSet;
 import java.util.Set;
@@ -31,6 +32,11 @@ public class User implements UserDetails {
 
 	private String firstName;
 	private String lastName;
+
+	private Boolean isActive;
+
+	@Column(name = "created_at", nullable = false, updatable = false)
+	private Instant createdAt = Instant.now();
 
 	@OneToMany(mappedBy = "user", cascade = CascadeType.ALL, fetch = FetchType.EAGER)
 	@Builder.Default
@@ -109,6 +115,22 @@ public class User implements UserDetails {
 
 	public void setLastName(String lastName) {
 		this.lastName = lastName;
+	}
+
+	public Boolean getIsActive() {
+		return isActive;
+	}
+
+	public void setIsActive(Boolean active) {
+		isActive = active;
+	}
+
+	public Instant getCreatedAt() {
+		return createdAt;
+	}
+
+	public void setCreatedAt(Instant createdAt) {
+		this.createdAt = createdAt;
 	}
 
 	public void setAuthoritySet(Set<Authority> authoritySet) {

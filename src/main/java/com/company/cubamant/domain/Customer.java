@@ -25,8 +25,6 @@ public class Customer extends User {
 	@Column(name = "newsletter_subscribed", nullable = false)
 	private boolean newsletterSubscribed = true;
 
-	@Column(name = "created_at", nullable = false, updatable = false)
-	private Instant createdAt = Instant.now();
 
 	public String getCompanyName() {
 		return companyName;
@@ -68,11 +66,4 @@ public class Customer extends User {
 		this.newsletterSubscribed = newsletterSubscribed;
 	}
 
-	public Instant getCreatedAt() {
-		return createdAt;
-	}
-
-	public void setCreatedAt(Instant createdAt) {
-		this.createdAt = createdAt;
-	}
 }

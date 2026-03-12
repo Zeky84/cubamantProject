@@ -20,8 +20,6 @@ public class Worker extends User {
 	@Column(name = "is_supervisor", nullable = false)
 	private boolean isSupervisor = false;
 
-	@Column(name = "created_at", nullable = false, updatable = false)
-	private Instant createdAt = Instant.now();
 
 	public WorkerClassification getJobTitle() {
 		return jobTitle;
@@ -47,11 +45,5 @@ public class Worker extends User {
 		isSupervisor = supervisor;
 	}
 
-	public Instant getCreatedAt() {
-		return createdAt;
-	}
 
-	public void setCreatedAt(Instant createdAt) {
-		this.createdAt = createdAt;
-	}
 }

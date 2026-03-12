@@ -1,10 +1,14 @@
 package com.company.cubamant.b_service;
+import com.company.cubamant.domain.User;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.stereotype.Service;
 
 import com.company.cubamant.repository.UserRepository;
+
+import java.util.List;
+import java.util.Optional;
 
 @Service
 public class UserServiceImpl implements UserService {
@@ -24,4 +28,31 @@ public class UserServiceImpl implements UserService {
 			}
 		};
 	}
+
+	@Override
+	public Optional<User> findUserByEmail(String email) {
+		return Optional.empty();
+	}
+
+	@Override
+	public void save(User admin) {
+
+	}
+
+	@Override
+	public List<User> findAll() {
+		return null;
+	}
+
+	@Override
+	public void elevateUserToAdmin(Long userId) {
+
+	}
+
+	@Override
+	public void deleteUser(Long userId) {
+
+	}
+
+
 }

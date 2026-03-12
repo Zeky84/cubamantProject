@@ -1,4 +1,4 @@
-package com.company.cubamant.web;
+package com.company.cubamant.c_web;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
