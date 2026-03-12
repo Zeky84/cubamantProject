@@ -36,7 +36,10 @@ public class RefreshTokenService {
 		refreshTokenRepository.deleteByUserId(userId);
 
 		RefreshToken refreshToken = new RefreshToken();
-		refreshToken.setUser(userRepository.findById(userId).get());
+		User user = userRepository.findById(userId)
+				.orElseThrow(() -> new RuntimeException("User not found"));
+
+		refreshToken.setUser(user);
 		refreshToken.setExpiryDate(Instant.now().plusMillis(refreshTokenDuration));
 		refreshToken.setToken(UUID.randomUUID().toString());
 
@@ -53,7 +56,7 @@ public class RefreshTokenService {
 
 	public RefreshToken verifyExpiration(RefreshToken token) {
 		if (token.getExpiryDate().compareTo(Instant.now()) < 0) {
-			refreshTokenRepository.delete(token);
+			refreshTokenRepository.deleteById(token.getId());
 			throw new RuntimeException("Refresh token expired. Please sign in again.");
 		}
 		return token;
@@ -66,5 +69,10 @@ public class RefreshTokenService {
 
 		User user = refreshToken.getUser();
 		return jwtService.generateToken(user);
+	}
+
+	@Transactional
+	public void deleteByUserId(Long id) {
+		refreshTokenRepository.deleteByUserId(id);
 	}
 }

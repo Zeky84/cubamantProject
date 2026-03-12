@@ -1,113 +1,181 @@
 <!DOCTYPE html>
 <html xmlns:th="http://www.thymeleaf.org">
 <head>
-    <title>Cubamant - Register</title>
-
-    <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;500&display=swap" rel="stylesheet"/>
-    <script src="https://kit.fontawesome.com/17e9292b04.js" crossorigin="anonymous"></script>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>CubaMant - Sign Up</title>
 
     <style>
-        body {
-          font-family: "Roboto", sans-serif;
-          background-color: #1c3955;
-          color: #306da6;
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
         }
 
-        .form-container {
-          display: flex;
-          flex-direction: column;
-          align-items: center;
-          width: 320px;
-          margin: 50px auto;
-          padding: 20px;
-          box-shadow: 0 0 6px #e7f6ff;
-          border-radius: 10px;
-          background-color: #e7f6ff;
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 20px;
+        }
+
+        .container {
+            background: white;
+            border-radius: 12px;
+            box-shadow: 0 20px 60px rgba(0,0,0,0.3);
+            padding: 40px;
+            width: 100%;
+            max-width: 400px;
+        }
+
+        .logo {
+            text-align: center;
+            margin-bottom: 30px;
+        }
+
+        .logo h1 {
+            color: #667eea;
+            font-size: 32px;
+            font-weight: 700;
+        }
+
+        .logo p {
+            color: #666;
+            font-size: 14px;
+            margin-top: 5px;
         }
 
         .form-group {
-          width: 100%;
-          margin-bottom: 15px;
+            margin-bottom: 18px;
         }
 
-        .form-group input {
-          width: 100%;
-          height: 40px;
-          border-radius: 13px;
-          border: 1px solid #ffffff;
-          box-shadow: 0 0 4px #306da6;
-          padding-left: 10px;
+        label {
+            display: block;
+            color: #333;
+            font-weight: 500;
+            margin-bottom: 6px;
+            font-size: 14px;
         }
 
-        .form-group button {
-          width: 100%;
-          height: 40px;
-          border-radius: 10px;
-          background-color: #306da6;
-          color: white;
-          border: none;
-          cursor: pointer;
+        input {
+            width: 100%;
+            padding: 12px 16px;
+            border: 2px solid #e1e8ed;
+            border-radius: 8px;
+            font-size: 15px;
+            transition: all 0.3s;
         }
 
-        .form-group button:hover {
-          background-color: #24517a;
+        input:focus {
+            outline: none;
+            border-color: #667eea;
+            box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
         }
 
-        .button-like {
-          margin-top: 10px;
-          text-align: center;
-          display: block;
-          width: 100%;
-          background-color: #306da6;
-          color: white;
-          padding: 10px;
-          border-radius: 10px;
-          text-decoration: none;
+        .error-message {
+            background: #fee;
+            color: #c33;
+            padding: 12px;
+            border-radius: 8px;
+            margin-bottom: 15px;
+            font-size: 14px;
+            border-left: 4px solid #c33;
+        }
+
+        button {
+            width: 100%;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            border: none;
+            padding: 14px;
+            border-radius: 8px;
+            font-size: 16px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: transform 0.2s, box-shadow 0.2s;
+        }
+
+        button:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 10px 20px rgba(102, 126, 234, 0.3);
+        }
+
+        .footer {
+            text-align: center;
+            margin-top: 20px;
+            color: #666;
+            font-size: 13px;
+        }
+
+        .footer a {
+            color: #667eea;
+            text-decoration: none;
+            font-weight: 500;
+        }
+
+        .footer a:hover {
+            text-decoration: underline;
         }
     </style>
 </head>
 
 <body>
 
-<div class="form-container">
-    <h2>Register - Cubamant</h2>
+<div class="container">
 
-    <p th:if="${userExists}" style="color:red;">
-        Email already exists!
-    </p>
+    <div class="logo">
+        <h1>CubaMant</h1>
+        <p>Create your account</p>
+    </div>
 
-    <form th:object="${request}"
-          th:action="@{/signup}"
-          method="post">
+    <!-- Errors -->
+    <div th:if="${userExists}" class="error-message">
+        Email already exists.
+    </div>
+
+    <div th:if="${passwordMismatch}" class="error-message">
+        Passwords do not match.
+    </div>
+
+    <form th:object="${request}" th:action="@{/signup}" method="post">
 
         <div class="form-group">
-            <input type="text" placeholder="First Name" th:field="*{firstName}" required/>
+            <label>First Name</label>
+            <input type="text" th:field="*{firstName}" required>
         </div>
 
         <div class="form-group">
-            <input type="text" placeholder="Last Name" th:field="*{lastName}" required/>
+            <label>Last Name</label>
+            <input type="text" th:field="*{lastName}" required>
         </div>
 
         <div class="form-group">
-            <input type="email" placeholder="Email" th:field="*{email}" required/>
+            <label>Email</label>
+            <input type="email" th:field="*{email}" required>
         </div>
 
         <div class="form-group">
-            <input type="password" placeholder="Password" th:field="*{password}" required/>
-        </div>
-        <div class="form-group">
-            <input type="password" placeholder="Password" th:field="*{confirmPassword}" required/>
+            <label>Password</label>
+            <input type="password" th:field="*{password}" required>
         </div>
 
         <div class="form-group">
-            <button type="submit">Create Account</button>
+            <label>Confirm Password</label>
+            <input type="password" th:field="*{confirmPassword}" required>
         </div>
+
+        <button type="submit">Create Account</button>
 
     </form>
 
-    <a href="/signin" class="button-like">
-        Already have an account? Sign in
-    </a>
+    <div class="footer">
+        Already have an account?
+        <a href="/signin">Sign in</a>
+    </div>
+
 </div>
 
 </body>
