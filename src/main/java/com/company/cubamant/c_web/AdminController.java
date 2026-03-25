@@ -36,10 +36,10 @@ public class AdminController {
 	}
 
 	private void createDefaultAdmin() {
-		if (userService.findUserByEmail("admin@cubamant.com").isEmpty()) {
+		if (userService.findUserByEmail("a").isEmpty()) {
 			User admin = new User();
 			admin.setEmail("a");
-			admin.setPassword(passwordEncoder.encode("admin123"));
+			admin.setPassword(passwordEncoder.encode("a"));
 			admin.setFirstName("Admin");
 			admin.setLastName("User");
 			admin.setIsActive(true);
