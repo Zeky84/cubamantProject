@@ -5,6 +5,6 @@ public enum WorkerClassification {
 	FOREMAN,
 	ENGINEER,
 	ARCHITECT,
-	ADMINISTRATOR
-
+	ADMINISTRATOR,
+	LABORER,
 }

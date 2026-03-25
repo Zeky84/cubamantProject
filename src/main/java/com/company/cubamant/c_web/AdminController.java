@@ -30,28 +30,6 @@ public class AdminController {
 		this.passwordEncoder = passwordEncoder;
 	}
 
-	@PostConstruct
-	public void init() {
-		createDefaultAdmin();
-	}
-
-	private void createDefaultAdmin() {
-		if (userService.findUserByEmail("a").isEmpty()) {
-			User admin = new User();
-			admin.setEmail("a");
-			admin.setPassword(passwordEncoder.encode("a"));
-			admin.setFirstName("Admin");
-			admin.setLastName("User");
-			admin.setIsActive(true);
-			admin.setCreatedAt(Instant.now());
-
-			admin.getAuthoritySet().add(new Authority("ROLE_ADMIN", admin));
-
-			userService.save(admin);
-			logger.info("Default admin user created: admin@cubamant.com / admin123");
-		}
-	}
-
 	@GetMapping("/dashboard")
 	public String getDashboard(Model model, Authentication authentication) {
 		String adminEmail = authentication.getName();
