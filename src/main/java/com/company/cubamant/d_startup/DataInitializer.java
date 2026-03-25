@@ -30,19 +30,19 @@ public class DataInitializer {
 	}
 
 	private void createDefaultAdmin() {
-			if (userService.findUserByEmail("e").isEmpty()) {
+			if (userService.findUserByEmail("admin").isEmpty()) {
 				User admin = new User();
-				admin.setEmail("e");
-				admin.setPassword(passwordEncoder.encode("e"));
-				admin.setFirstName("Admin");
-				admin.setLastName("User");
+				admin.setEmail("admin");
+				admin.setPassword(passwordEncoder.encode("admin"));
+				admin.setFirstName("admin");
+				admin.setLastName("admin");
 				admin.setIsActive(true);
 				admin.setCreatedAt(Instant.now());
 
 				admin.getAuthoritySet().add(new Authority("ROLE_ADMIN", admin));
 
 				userService.save(admin);
-				logger.info("Default admin user created: admin@cubamant.com / admin123");
+				logger.info("Default admin user created: admin / admin");
 			}
 	}
 }

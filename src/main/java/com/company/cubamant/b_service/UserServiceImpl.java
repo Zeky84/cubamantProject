@@ -64,8 +64,9 @@ public class UserServiceImpl implements UserService {
 		User user = userRepository.findById(id)
 				.orElseThrow(() -> new RuntimeException("User not found"));
 
-		refreshTokenService.deleteByUserId(id);
+		int deletedTokens = refreshTokenService.deleteByUserId(id);
 		userRepository.delete(user);
+		System.out.println("deleted Tokens: " + deletedTokens);// for debugging
 	}
 
 	public boolean existsByEmail(String email) {

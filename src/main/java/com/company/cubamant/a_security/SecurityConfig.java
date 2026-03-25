@@ -74,7 +74,7 @@ public class SecurityConfig {
 				)
 				.authorizeHttpRequests(auth -> auth
 						.requestMatchers("/admin/**").hasAnyAuthority("ROLE_ADMIN", "ADMIN") // Acepta ambos formatos
-						.requestMatchers("/api/user/**").hasAnyAuthority("ROLE_USER", "USER", "ROLE_ADMIN", "ADMIN")
+						.requestMatchers("/api/user/**").hasAnyAuthority("ROLE_USER", "USER","ROLE_SUPERUSER", "SUPERUSER", "ROLE_ADMIN", "ADMIN")
 						.requestMatchers("/", "/signin", "/signup", "/error", "/css/**", "/js/**,").permitAll()
 						.anyRequest().authenticated()
 				)
