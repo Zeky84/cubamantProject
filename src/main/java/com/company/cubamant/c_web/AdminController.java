@@ -1,10 +1,8 @@
 package com.company.cubamant.c_web;
 
-import com.company.cubamant.domain.Authority;
-import com.company.cubamant.domain.User;
+import com.company.cubamant.b_service.SetupService;
+import com.company.cubamant.domain.*;
 import com.company.cubamant.b_service.UserService;
-
-import jakarta.annotation.PostConstruct;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -14,7 +12,6 @@ import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.*;
 
-import java.time.Instant;
 import java.util.List;
 import java.util.Optional;
 
@@ -23,11 +20,14 @@ import java.util.Optional;
 public class AdminController {
 	private final UserService userService;
 	private final PasswordEncoder passwordEncoder;
+
+	private final SetupService setupService;
 	private static final Logger logger = LoggerFactory.getLogger(AdminController.class);
 
-	public AdminController(UserService userService, PasswordEncoder passwordEncoder) {
+	public AdminController(UserService userService, PasswordEncoder passwordEncoder, SetupService setupService) {
 		this.userService = userService;
 		this.passwordEncoder = passwordEncoder;
+		this.setupService = setupService;
 	}
 
 	@GetMapping("/dashboard")
@@ -81,5 +81,38 @@ public class AdminController {
 		}
 
 		return "redirect:/admin/dashboard";
+	}
+
+	@PostMapping("/workers")
+	public String createWorker(
+			@RequestParam String email,
+			@RequestParam String firstName,
+			@RequestParam String lastName,
+			@RequestParam WorkerClassification classification
+	) {
+
+		if (userService.existsByEmail(email)) {
+			return "redirect:/admin/dashboard?error=emailExists";
+		}
+
+		Worker worker = new Worker();
+		worker.setEmail(email);
+		worker.setFirstName(firstName);
+		worker.setLastName(lastName);
+		worker.setJobTitle(classification);
+		worker.setIsActive(false); // 🔴 critical
+		worker.setPassword("");   // no password yet
+
+		worker.getAuthoritySet().add(new Authority("ROLE_USER", worker));
+
+		userService.save(worker);
+
+		SetupToken token = setupService.createToken(worker);
+
+		String link = "http://localhost:8080/setup-password?token=" + token.getToken();
+
+		logger.info("Onboarding link: {}", link);
+
+		return "redirect:/admin/dashboard?workerCreated";
 	}
 }
