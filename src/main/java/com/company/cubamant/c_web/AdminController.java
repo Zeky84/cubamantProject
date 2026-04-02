@@ -91,28 +91,11 @@ public class AdminController {
 			@RequestParam WorkerClassification classification
 	) {
 
-		if (userService.existsByEmail(email)) {
-			return "redirect:/admin/dashboard?error=emailExists";
-		}
-
-		Worker worker = new Worker();
-		worker.setEmail(email);
-		worker.setFirstName(firstName);
-		worker.setLastName(lastName);
-		worker.setJobTitle(classification);
-		worker.setIsActive(false); // 🔴 critical
-		worker.setPassword("");   // no password yet
-
-		worker.getAuthoritySet().add(new Authority("ROLE_USER", worker));
-
-		userService.save(worker);
-
-		SetupToken token = setupService.createToken(worker);
-
-		String link = "http://localhost:8080/setup-password?token=" + token.getToken();
-
-		logger.info("Onboarding link: {}", link);
+		setupService.createWorkerWithSetupLink(
+				email, firstName, lastName, classification
+		);
 
 		return "redirect:/admin/dashboard?workerCreated";
+
 	}
 }

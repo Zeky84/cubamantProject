@@ -6,12 +6,11 @@ import org.springframework.security.core.userdetails.UserDetailsService;
 import java.util.List;
 import java.util.Optional;
 
-public interface UserService {
-	UserDetailsService userDetailsService();
+public interface UserService extends UserDetailsService {
 
 	Optional<User> findUserByEmail(String email);
 
-	void save(User admin);
+	void save(User user);
 
 	List<User> findAll();
 

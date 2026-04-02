@@ -15,12 +15,15 @@ public class SetupToken {
 	@Column(nullable = false, unique = true)
 	private String token;
 
-	@OneToOne
-	@JoinColumn(name = "user_id", nullable = false)
+	@OneToOne(fetch = FetchType.LAZY)
+	@JoinColumn(name = "user_id", nullable = false, unique = true)
 	private User user;
 
 	@Column(nullable = false)
 	private Instant expiration;
+
+	@Column(nullable = false)
+	private boolean used = false;
 
 	public SetupToken() {}
 
@@ -60,6 +63,14 @@ public class SetupToken {
 
 	public void setExpiration(Instant expiration) {
 		this.expiration = expiration;
+	}
+
+	public boolean isUsed() {
+		return used;
+	}
+
+	public void setUsed(boolean used) {
+		this.used = used;
 	}
 
 	// getters/setters

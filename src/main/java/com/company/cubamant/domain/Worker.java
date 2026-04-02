@@ -3,21 +3,20 @@ import jakarta.persistence.*;
 import lombok.Getter;
 
 import java.math.BigDecimal;
-import java.time.Instant;
 
 @Entity
 
 @Table(name = "workers")
 public class Worker extends User {
 
+	@Enumerated(EnumType.STRING)
 	@Column(name = "job_title")
-	private WorkerClassification jobTitle; // e.g., “engineer”, “admin”
+	private WorkerClassification jobTitle;
 
-	@Getter
-	@Column(name = "hourly_rate",nullable = false)
+	@Column(name = "hourly_rate")
 	private BigDecimal hourlyRate;
 
-	@Column(name = "is_supervisor", nullable = false)
+	@Column(name = "is_supervisor")
 	private boolean isSupervisor = false;
 
 

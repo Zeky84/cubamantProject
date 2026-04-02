@@ -1,17 +1,16 @@
 package com.company.cubamant.b_service;
+
+import com.company.cubamant.ab_payload.JwtAuthenticationResponse;
+import com.company.cubamant.ab_payload.RegisterRequest;
+import com.company.cubamant.ab_payload.SignInRequest;
+import com.company.cubamant.domain.User;
+import com.company.cubamant.repository.UserRepository;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
-
-import com.company.cubamant.domain.Authority;
-import com.company.cubamant.domain.User;
-import com.company.cubamant.ab_payload.SignInRequest;
-import com.company.cubamant.ab_payload.JwtAuthenticationResponse;
-import com.company.cubamant.repository.UserRepository;
-import com.company.cubamant.ab_payload.RegisterRequest;
 
 import java.util.HashSet;
 
@@ -28,18 +27,20 @@ public class AuthenticationServiceImpl implements AuthenticationService {
 	private final AuthenticationManager authenticationManager;
 	private final RefreshTokenService refreshTokenService;
 	private final UserService userService;
+	private final AuthorityService authorityService;
 
 	public AuthenticationServiceImpl(UserRepository userRepository,
 									 PasswordEncoder passwordEncoder,
 									 JwtService jwtService,
 									 AuthenticationManager authenticationManager,
-									 RefreshTokenService refreshTokenService, UserService userService) {
+									 RefreshTokenService refreshTokenService, UserService userService, AuthorityService authorityService) {
 		this.userRepository = userRepository;
 		this.passwordEncoder = passwordEncoder;
 		this.jwtService = jwtService;
 		this.authenticationManager = authenticationManager;
 		this.refreshTokenService = refreshTokenService;
 		this.userService = userService;
+		this.authorityService = authorityService;
 	}
 
 // COMMENTED CAUSE OF THE CHANGE TO THE SIGNUP METHOD TO USE THE RegisterRequest DTO instead of the SignUpRequest RECORD
@@ -94,7 +95,7 @@ public class AuthenticationServiceImpl implements AuthenticationService {
 	user.setPassword(passwordEncoder.encode(request.getPassword()));
 
 	user.setAuthoritySet(new HashSet<>());
-	user.getAuthoritySet().add(new Authority("ROLE_USER", user));
+	authorityService.assigningRole(user,"ROLE_USER");
 
 	userService.save(user);
 

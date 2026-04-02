@@ -1,9 +1,6 @@
 package com.company.cubamant.domain;
 
 import jakarta.persistence.*;
-import lombok.Getter;
-
-import java.time.Instant;
 import java.util.List;
 
 @Entity
@@ -24,7 +21,6 @@ public class Customer extends User {
 
 	@Column(name = "newsletter_subscribed", nullable = false)
 	private boolean newsletterSubscribed = true;
-
 
 	public String getCompanyName() {
 		return companyName;
@@ -65,5 +61,4 @@ public class Customer extends User {
 	public void setNewsletterSubscribed(boolean newsletterSubscribed) {
 		this.newsletterSubscribed = newsletterSubscribed;
 	}
-
 }

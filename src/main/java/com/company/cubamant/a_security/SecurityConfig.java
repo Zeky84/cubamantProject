@@ -24,6 +24,7 @@ import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
 import org.springframework.security.config.http.SessionCreationPolicy;
 import org.springframework.security.core.Authentication;
+import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.security.web.SecurityFilterChain;
@@ -37,16 +38,18 @@ import org.springframework.security.web.csrf.CsrfTokenRequestAttributeHandler;
 public class SecurityConfig {
 	private final JwtAuthenticationFilter jwtAuthenticationFilter;
 	private final UserService userService;
+	private final UserDetailsService userDetailsService;
 	private final JwtService jwtService;
 	private final RefreshTokenService refreshTokenService;
 	private static final Logger logger = LoggerFactory.getLogger(SecurityConfig.class);
 
 	public SecurityConfig(JwtAuthenticationFilter jwtAuthenticationFilter,
 						  UserService userService,
-						  JwtService jwtService,
+						  UserDetailsService userDetailsService, JwtService jwtService,
 						  RefreshTokenService refreshTokenService) {
 		this.jwtAuthenticationFilter = jwtAuthenticationFilter;
 		this.userService = userService;
+		this.userDetailsService = userDetailsService;
 		this.jwtService = jwtService;
 		this.refreshTokenService = refreshTokenService;
 	}
@@ -75,7 +78,7 @@ public class SecurityConfig {
 				.authorizeHttpRequests(auth -> auth
 						.requestMatchers("/admin/**").hasAnyAuthority("ROLE_ADMIN", "ADMIN") // Acepta ambos formatos
 						.requestMatchers("/api/user/**").hasAnyAuthority("ROLE_USER", "USER","ROLE_SUPERUSER", "SUPERUSER", "ROLE_ADMIN", "ADMIN")
-						.requestMatchers("/", "/signin", "/signup", "/error", "/css/**", "/js/**,").permitAll()
+						.requestMatchers("/", "/signin", "/signup", "/error", "/css/**", "/js/**,","/setup-password/**").permitAll()
 						.anyRequest().authenticated()
 				)
 				.sessionManagement(session ->
@@ -147,7 +150,7 @@ public class SecurityConfig {
 	@Bean
 	public AuthenticationProvider authenticationProvider() {
 		DaoAuthenticationProvider authProvider = new DaoAuthenticationProvider();
-		authProvider.setUserDetailsService(userService.userDetailsService());
+		authProvider.setUserDetailsService(userService);
 		authProvider.setPasswordEncoder(passwordEncoder());
 		return authProvider;
 	}

@@ -1,55 +1,239 @@
 <!DOCTYPE html>
-<html xmlns:th="http://www.thymeleaf.org"
-      xmlns:sec="http://www.thymeleaf.org/extras/spring-security">
+<html xmlns:th="http://www.thymeleaf.org">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Admin Dashboard - CubaMant</title>
+
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            padding: 30px;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: auto;
+        }
+
+        .card {
+            background: white;
+            border-radius: 12px;
+            box-shadow: 0 20px 60px rgba(0,0,0,0.2);
+            padding: 30px;
+            margin-bottom: 25px;
+        }
+
+        .header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        h1 {
+            color: #667eea;
+        }
+
+        h2 {
+            margin-bottom: 15px;
+            color: #333;
+        }
+
+        p {
+            color: #555;
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 15px;
+        }
+
+        th, td {
+            padding: 12px;
+            text-align: left;
+        }
+
+        th {
+            background: #f5f7fa;
+        }
+
+        tr:nth-child(even) {
+            background: #fafafa;
+        }
+
+        .badge {
+            padding: 5px 10px;
+            border-radius: 6px;
+            font-size: 12px;
+            font-weight: 600;
+        }
+
+        .active {
+            background: #e6ffed;
+            color: #2e7d32;
+        }
+
+        .inactive {
+            background: #ffecec;
+            color: #c62828;
+        }
+
+        input, select {
+            width: 100%;
+            padding: 10px;
+            border-radius: 8px;
+            border: 2px solid #e1e8ed;
+            margin-bottom: 12px;
+        }
+
+        input:focus, select:focus {
+            outline: none;
+            border-color: #667eea;
+        }
+
+        button {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            border: none;
+            padding: 10px 16px;
+            border-radius: 8px;
+            cursor: pointer;
+            font-weight: 600;
+        }
+
+        button:hover {
+            transform: translateY(-1px);
+            box-shadow: 0 5px 15px rgba(102,126,234,0.3);
+        }
+
+        .danger {
+            background: #e53935;
+        }
+
+        .message {
+            padding: 10px;
+            border-radius: 8px;
+            margin-bottom: 15px;
+        }
+
+        .success {
+            background: #e6ffed;
+            color: #2e7d32;
+        }
+
+        .error {
+            background: #ffecec;
+            color: #c62828;
+        }
+    </style>
 </head>
+
 <body>
-<h1>Admin Dashboard</h1>
 
-<div>
-    <p>Welcome, <span th:text="${adminEmail}">admin</span>!</p>
-    <form th:action="@{/logout}" method="post">
-        <button type="submit">Logout</button>
-    </form>
+<div class="container">
+
+    <!-- HEADER -->
+    <div class="card header">
+        <div>
+            <h1>CubaMant Admin</h1>
+            <p>Welcome, <strong th:text="${adminEmail}">admin</strong></p>
+        </div>
+
+        <form th:action="@{/logout}" method="post">
+            <input type="hidden" th:name="${_csrf.parameterName}" th:value="${_csrf.token}"/>
+            <button type="submit">Logout</button>
+        </form>
+    </div>
+
+    <!-- MESSAGES -->
+    <div th:if="${param.workerCreated}" class="card message success">
+        Worker created and onboarding email sent.
+    </div>
+
+    <div th:if="${param.error}" class="card message error">
+        Email already exists.
+    </div>
+
+    <!-- CREATE WORKER -->
+    <div class="card">
+        <h2>Create Worker</h2>
+
+        <form th:action="@{/admin/workers}" method="post">
+
+            <input type="hidden" th:name="${_csrf.parameterName}" th:value="${_csrf.token}"/>
+
+            <input type="email" name="email" placeholder="Email" required/>
+            <input type="text" name="firstName" placeholder="First Name" required/>
+            <input type="text" name="lastName" placeholder="Last Name" required/>
+
+            <select name="classification" required>
+                <option value="">Select Role</option>
+                <option value="TECHNICIAN">Technician</option>
+                <option value="FOREMAN">Foreman</option>
+                <option value="ENGINEER">Engineer</option>
+                <option value="ARCHITECT">Architect</option>
+                <option value="ADMINISTRATOR">Administrator</option>
+                <option value="LABORER">Laborer</option>
+            </select>
+
+            <button type="submit">Create Worker</button>
+        </form>
+    </div>
+
+    <!-- USERS TABLE -->
+    <div class="card">
+        <h2>All Users</h2>
+
+        <div th:if="${users != null and !users.isEmpty()}">
+            <table>
+                <thead>
+                <tr>
+                    <th>ID</th>
+                    <th>Email</th>
+                    <th>Name</th>
+                    <th>Status</th>
+                    <th>Actions</th>
+                </tr>
+                </thead>
+
+                <tbody>
+                <tr th:each="user : ${users}">
+                    <td th:text="${user.id}"></td>
+                    <td th:text="${user.email}"></td>
+                    <td th:text="${user.firstName + ' ' + user.lastName}"></td>
+
+                    <td>
+                        <span th:class="${user.isActive} ? 'badge active' : 'badge inactive'"
+                              th:text="${user.isActive} ? 'ACTIVE' : 'PENDING'">
+                        </span>
+                    </td>
+
+                    <td>
+                        <form th:action="@{/admin/users/{id}/delete(id=${user.id})}" method="post">
+                            <input type="hidden" th:name="${_csrf.parameterName}" th:value="${_csrf.token}"/>
+                            <button class="danger" type="submit">Delete</button>
+                        </form>
+                    </td>
+                </tr>
+                </tbody>
+            </table>
+        </div>
+
+        <div th:if="${users == null or users.isEmpty()}">
+            <p>No users found.</p>
+        </div>
+    </div>
+
 </div>
 
-<h2>All Users</h2>
-
-<div th:if="${users != null and !users.isEmpty()}">
-    <table border="1">
-        <thead>
-        <tr>
-            <th>ID</th>
-            <th>Email</th>
-            <th>First Name</th>
-            <th>Last Name</th>
-            <th>Active</th>
-            <th>Actions</th>
-        </tr>
-        </thead>
-        <tbody>
-        <tr th:each="user : ${users}">
-            <td th:text="${user.id}">1</td>
-            <td th:text="${user.email}">email@example.com</td>
-            <td th:text="${user.firstName}">John</td>
-            <td th:text="${user.lastName}">Doe</td>
-            <td th:text="${user.isActive ? 'Yes' : 'No'}">Yes</td>
-            <td>
-                <form th:action="@{/admin/users/{id}/delete(id=${user.id})}" method="post">
-                    <input type="hidden" th:name="${_csrf.parameterName}" th:value="${_csrf.token}"/>
-                    <button type="submit">Delete</button>
-                </form>
-            </td>
-        </tr>
-        </tbody>
-    </table>
-</div>
-
-<div th:if="${users == null or users.isEmpty()}">
-    <p>No users found.</p>
-</div>
 </body>
 </html>

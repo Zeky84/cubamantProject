@@ -5,7 +5,7 @@ create table users (
     password varchar(255) not null,
     first_name varchar(255) not null,
     last_name varchar(255) not null,
-    user_type varchar(31) not null,
+    user_type varchar(31),
     is_active boolean not null default true,
     created_at timestamp(6) with time zone not null default now()
 );
@@ -33,11 +33,12 @@ create table customers (
 -- WORKERS
 create table workers (
     id bigint primary key,
-    hourly_rate numeric(38,2) not null,
+    hourly_rate numeric(38,2),
     is_supervisor boolean not null default false,
-    job_title smallint not null,
+    job_title varchar(255) not null,
     created_at timestamp(6) with time zone not null default now(),
-    constraint workers_job_title_check check (job_title between 0 and 4),
+    constraint workers_job_title_check
+check (job_title in ('TECHNICIAN','FOREMAN','ENGINEER','ARCHITECT','ADMINISTRATOR','LABORER')),
     constraint fk_workers_user foreign key (id) references users(id)
 );
 
@@ -106,6 +107,7 @@ create table setup_tokens (
     token varchar(255) not null unique,
     user_id bigint not null unique,
     expiration timestamp with time zone not null,
+    used boolean not null default false,
     constraint fk_setup_token_user
         foreign key (user_id) references users(id)
         on delete cascade
