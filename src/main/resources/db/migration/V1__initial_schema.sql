@@ -35,7 +35,7 @@ create table workers (
     id bigint primary key,
     hourly_rate numeric(38,2),
     is_supervisor boolean not null default false,
-    job_title varchar(255) not null,
+    job_title varchar(50) not null,
     created_at timestamp(6) with time zone not null default now(),
     constraint workers_job_title_check
 check (job_title in ('TECHNICIAN','FOREMAN','ENGINEER','ARCHITECT','ADMINISTRATOR','LABORER')),

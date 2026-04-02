@@ -10,7 +10,7 @@ import java.math.BigDecimal;
 public class Worker extends User {
 
 	@Enumerated(EnumType.STRING)
-	@Column(name = "job_title")
+	@Column(name = "job_title",nullable = false)
 	private WorkerClassification jobTitle;
 
 	@Column(name = "hourly_rate")
