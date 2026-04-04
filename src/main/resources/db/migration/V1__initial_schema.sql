@@ -97,6 +97,7 @@ create table refresh_tokens (
     token varchar(500) not null unique,
     expiry_date timestamp with time zone not null,
     revoked boolean not null default false,
+    reused boolean not null default false,
     user_id bigint not null,
     constraint fk_refresh_user foreign key (user_id) references users(id)
 );

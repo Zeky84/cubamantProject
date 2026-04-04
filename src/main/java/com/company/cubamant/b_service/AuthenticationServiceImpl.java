@@ -79,44 +79,52 @@ public class AuthenticationServiceImpl implements AuthenticationService {
 
 	@Override
 	public JwtAuthenticationResponse signup(RegisterRequest request) {
-		//Using RegisterRequest DTO to avoid using the User entity directly for security and separation of concerns.
-	if (userService.existsByEmail(request.getEmail())) {
-		throw new RuntimeException("Email already exists");
-	}
-	if (!request.getPassword().equals(request.getConfirmPassword())) {
-			throw new RuntimeException("Passwords do not match");
+
+		if (userService.existsByEmail(request.getEmail())) {
+			throw new IllegalArgumentException("EMAIL_EXISTS");
 		}
 
-	User user = new User();
-	user.setFirstName(request.getFirstName());
-	user.setLastName(request.getLastName());
-	user.setEmail(request.getEmail());
-	user.setIsActive(true);
-	user.setPassword(passwordEncoder.encode(request.getPassword()));
+		if (!request.getPassword().equals(request.getConfirmPassword())) {
+			throw new IllegalArgumentException("PASSWORD_MISMATCH");
+		}
 
-	user.setAuthoritySet(new HashSet<>());
-	authorityService.assigningRole(user,"ROLE_USER");
+		if (request.getPassword().length() < 8) {
+			throw new IllegalArgumentException("PASSWORD_TOO_SHORT");
+		}
 
-	userService.save(user);
+		User user = new User();
+		user.setFirstName(request.getFirstName());
+		user.setLastName(request.getLastName());
+		user.setEmail(request.getEmail());
+		user.setIsActive(true);
+		user.setPassword(passwordEncoder.encode(request.getPassword()));
 
-	String jwt = jwtService.generateToken(user);
-	var refreshToken = refreshTokenService.createRefreshToken(user.getId());
+		user.setAuthoritySet(new HashSet<>());
+		authorityService.assigningRole(user, "ROLE_USER");
 
-	return new JwtAuthenticationResponse(jwt, refreshToken.getToken());
-}
+		userService.save(user);
+
+		String jwt = jwtService.generateToken(user);
+		var refreshToken = refreshTokenService.createRefreshToken(user.getId());
+
+		return new JwtAuthenticationResponse(jwt, refreshToken.getToken());
+	}
 
 	@Override
 	public JwtAuthenticationResponse signin(SignInRequest request) {
-		authenticationManager.authenticate(
-				new UsernamePasswordAuthenticationToken(request.email(), request.password()));
 
-		User user = userRepository.findByEmail(request.email())
-				.orElseThrow(() -> new IllegalArgumentException("Invalid email or password"));
+		var authentication = authenticationManager.authenticate(
+				new UsernamePasswordAuthenticationToken(
+						request.email(),
+						request.password()
+				)
+		);
+		User user = (User) authentication.getPrincipal();
+		refreshTokenService.deleteByUserId(user.getId());
+		var refreshToken = refreshTokenService.createRefreshToken(user.getId());
 
 		String jwt = jwtService.generateToken(user);
 
-		var refreshToken = refreshTokenService.findByUserId(user.getId())
-				.orElseGet(() -> refreshTokenService.createRefreshToken(user.getId()));
 
 		logger.info("User signed in: {}", user.getEmail());
 

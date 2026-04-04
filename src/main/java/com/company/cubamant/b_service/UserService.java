@@ -14,11 +14,11 @@ public interface UserService extends UserDetailsService {
 
 	List<User> findAll();
 
-	void elevateUserToAdmin(Long id);
+	void elevateUserToAdmin(Long userId);
 
-	void deleteUser(Long id);
+	void deleteUser(Long userId);
 
-	Optional<User> findUserById(Long id);
+	Optional<User> findUserById(Long userId);
 
 	boolean existsByEmail(String email);
 }

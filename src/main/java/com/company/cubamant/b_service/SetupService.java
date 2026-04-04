@@ -1,5 +1,6 @@
 package com.company.cubamant.b_service;
 
+import com.company.cubamant.ab_payload.JwtAuthenticationResponse;
 import com.company.cubamant.domain.*;
 import com.company.cubamant.repository.SetupTokenRepository;
 import org.slf4j.Logger;
@@ -13,9 +14,9 @@ import java.time.Instant;
 import java.util.Optional;
 import java.util.UUID;
 
-
 @Service
 public class SetupService {
+
 	@Value("${app.base-url}")
 	private String baseUrl;
 
@@ -23,31 +24,36 @@ public class SetupService {
 	private final UserService userService;
 	private final EmailService emailService;
 	private final AuthorityService authorityService;
-
 	private final PasswordEncoder passwordEncoder;
+	private final RefreshTokenService refreshTokenService; // inject for JWT/refresh creation
+	private final JwtService jwtService;
 
 	private static final Logger logger = LoggerFactory.getLogger(SetupService.class);
 
-	public SetupService(SetupTokenRepository setupTokenRepository, UserService userService, EmailService emailService,
-						AuthorityService authorityService, PasswordEncoder passwordEncoder) {
+	public SetupService(SetupTokenRepository setupTokenRepository,
+						UserService userService,
+						EmailService emailService,
+						AuthorityService authorityService,
+						PasswordEncoder passwordEncoder,
+						RefreshTokenService refreshTokenService,
+						JwtService jwtService) {
 		this.setupTokenRepository = setupTokenRepository;
 		this.userService = userService;
 		this.emailService = emailService;
 		this.authorityService = authorityService;
 		this.passwordEncoder = passwordEncoder;
+		this.refreshTokenService = refreshTokenService;
+		this.jwtService = jwtService;
 	}
 
 	public SetupToken createToken(User user) {
-
 		Optional<SetupToken> existingTokenOpt = setupTokenRepository.findByUser(user);
 
 		if (existingTokenOpt.isPresent()) {
 			SetupToken existing = existingTokenOpt.get();
-
 			existing.setToken(UUID.randomUUID().toString());
 			existing.setExpiration(Instant.now().plusSeconds(60 * 60 * 24));
 			existing.setUsed(false);
-
 			return setupTokenRepository.save(existing);
 		}
 
@@ -61,9 +67,7 @@ public class SetupService {
 	}
 
 	public Optional<SetupToken> validateToken(String token) {
-
 		Optional<SetupToken> tokenOpt = setupTokenRepository.findByTokenAndUsedFalse(token);
-
 		if (tokenOpt.isEmpty()) return Optional.empty();
 
 		SetupToken setupToken = tokenOpt.get();
@@ -77,19 +81,13 @@ public class SetupService {
 	}
 
 	public void consumeToken(SetupToken token) {
-		// instead of deleting the token after use, we mark it as used. This way we can keep a record of token usage for
-		// auditing purposes, and we can also prevent any potential issues with token reuse if there are delays in database operations.
 		token.setUsed(true);
 		setupTokenRepository.save(token);
 		logger.info("Setup token consumed for user: {}", token.getUser().getEmail());
 	}
+
 	@Transactional
-	public void createWorkerWithSetupLink(
-			String email,
-			String firstName,
-			String lastName,
-			WorkerClassification classification
-	) {
+	public void createWorkerWithSetupLink(String email, String firstName, String lastName, WorkerClassification classification) {
 
 		if (userService.existsByEmail(email)) {
 			throw new RuntimeException("Email already exists");
@@ -102,19 +100,17 @@ public class SetupService {
 		worker.setFirstName(firstName);
 		worker.setLastName(lastName);
 		worker.setJobTitle(classification);
-
 		worker.setIsActive(false);
 		worker.setPassword(UUID.randomUUID().toString()); // placeholder
 
-		// Save FIRST (important for FK consistency)
+		// Save user first
 		userService.save(worker);
 
-		// THEN assign role
+		// Assign role
 		authorityService.assigningRole(worker, "ROLE_USER");
 
-		// Create token
+		// Create setup token
 		SetupToken token = createToken(worker);
-
 		String link = baseUrl + "/setup-password?token=" + token.getToken();
 
 		// Send email
@@ -125,7 +121,7 @@ public class SetupService {
 	}
 
 	@Transactional
-	public void activateUser(String token, String rawPassword) {
+	public JwtAuthenticationResponse activateUser(String token, String rawPassword) {
 
 		SetupToken setupToken = validateToken(token)
 				.orElseThrow(() -> new RuntimeException("Invalid or expired token"));
@@ -136,13 +132,20 @@ public class SetupService {
 			throw new RuntimeException("User already activated");
 		}
 
+		// Encode and set password
 		user.setPassword(passwordEncoder.encode(rawPassword));
 		user.setIsActive(true);
-
 		userService.save(user);
 
+		// Consume setup token
 		consumeToken(setupToken);
 
+		// Generate JWT and refresh token after activation
+		String jwt = jwtService.generateToken(user);
+		var refreshToken = refreshTokenService.createRefreshToken(user.getId());
+
 		logger.info("User activated: {}", user.getEmail());
+
+		return new JwtAuthenticationResponse(jwt, refreshToken.getToken());
 	}
 }

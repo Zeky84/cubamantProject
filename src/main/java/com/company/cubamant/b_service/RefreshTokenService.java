@@ -1,22 +1,24 @@
 package com.company.cubamant.b_service;
+
 import java.time.Instant;
 import java.util.Optional;
 import java.util.UUID;
 
-import com.company.cubamant.repository.RefreshTokenRepository;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import com.company.cubamant.domain.RefreshToken;
 import com.company.cubamant.domain.User;
 import com.company.cubamant.ab_payload.RefreshTokenRequest;
+import com.company.cubamant.repository.RefreshTokenRepository;
 import com.company.cubamant.repository.UserRepository;
-import org.springframework.transaction.annotation.Transactional;
 
 @Service
 public class RefreshTokenService {
+
 	@Value("${token.refreshExpiration}")
-	private Long refreshTokenDuration;
+	private Long refreshTokenDuration; // in milliseconds
 
 	private final RefreshTokenRepository refreshTokenRepository;
 	private final UserRepository userRepository;
@@ -30,49 +32,78 @@ public class RefreshTokenService {
 		this.jwtService = jwtService;
 	}
 
+	// ===== CREATE NEW REFRESH TOKEN =====
 	@Transactional
 	public RefreshToken createRefreshToken(Long userId) {
-		// Delete old refresh tokens for this user
+		// Remove old tokens to prevent multiple valid tokens
 		refreshTokenRepository.deleteByUserId(userId);
 
-		RefreshToken refreshToken = new RefreshToken();
 		User user = userRepository.findById(userId)
 				.orElseThrow(() -> new RuntimeException("User not found"));
 
+		RefreshToken refreshToken = new RefreshToken();
 		refreshToken.setUser(user);
-		refreshToken.setExpiryDate(Instant.now().plusMillis(refreshTokenDuration));
 		refreshToken.setToken(UUID.randomUUID().toString());
+		refreshToken.setExpiryDate(Instant.now().plusMillis(refreshTokenDuration));
+		refreshToken.setRevoked(false);
+		refreshToken.setReused(false);
 
 		return refreshTokenRepository.save(refreshToken);
 	}
 
+	// ===== FIND REFRESH TOKEN BY TOKEN STRING =====
 	public Optional<RefreshToken> findByToken(String token) {
 		return refreshTokenRepository.findByToken(token);
 	}
 
-	public Optional<RefreshToken> findByUserId(Long userId) {
-		return refreshTokenRepository.findByUserId(userId);
-	}
+	// ===== VERIFY AND ROTATE =====
+	@Transactional
+	public RefreshToken verifyAndRotate(RefreshToken token) {
+		// 1️⃣ Reuse detection
+		if (token.isRevoked()) {
+			handleReuseAttack(token);
+			throw new RuntimeException("Detected refresh token reuse. Please sign in again.");
+		}
 
-	public RefreshToken verifyExpiration(RefreshToken token) {
-		if (token.getExpiryDate().compareTo(Instant.now()) < 0) {
-			refreshTokenRepository.deleteById(token.getId());
+		// 2️⃣ Expiration check
+		if (token.getExpiryDate().isBefore(Instant.now())) {
+			refreshTokenRepository.delete(token);
 			throw new RuntimeException("Refresh token expired. Please sign in again.");
 		}
-		return token;
+
+		// 3️⃣ Rotation: revoke old token
+		token.setRevoked(true);
+		refreshTokenRepository.save(token);
+
+		// 4️⃣ Create a new token for the user
+		return createRefreshToken(token.getUser().getId());
 	}
 
+	// ===== CREATE NEW ACCESS TOKEN (CALLED FROM CONTROLLER) =====
+	@Transactional
 	public String createNewAccessToken(RefreshTokenRequest request) {
-		RefreshToken refreshToken = findByToken(request.refreshToken())
-				.map(this::verifyExpiration)
+		RefreshToken rotatedToken = findByToken(request.refreshToken())
+				.map(this::verifyAndRotate)
 				.orElseThrow(() -> new RuntimeException("Refresh token not found"));
 
-		User user = refreshToken.getUser();
-		return jwtService.generateToken(user);
+		// Generate new JWT for the user
+		return jwtService.generateToken(rotatedToken.getUser());
 	}
 
+	// ===== HANDLE REUSE ATTACK =====
 	@Transactional
-	public int deleteByUserId(Long id) {
-		return refreshTokenRepository.deleteByUserId(id);
+	private void handleReuseAttack(RefreshToken token) {
+		token.setReused(true);
+		refreshTokenRepository.save(token);
+
+		Long userId = token.getUser().getId();
+		// Revoke all tokens for this user
+		refreshTokenRepository.deleteByUserId(userId);
+	}
+
+	// ===== DELETE ALL TOKENS FOR USER =====
+	@Transactional
+	public int deleteByUserId(Long userId) {
+		return refreshTokenRepository.deleteByUserId(userId);
 	}
 }

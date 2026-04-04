@@ -140,11 +140,21 @@
         Passwords do not match.
     </div>
 
+    <div th:if="${passwordTooShort}" class="error-message">
+        Password must be at least 8 characters.
+    </div>
+
+    <div th:if="${genericError}" class="error-message">
+        Something went wrong. Please try again.
+    </div>
+
     <form th:object="${request}" th:action="@{/signup}" method="post">
 
         <div class="form-group">
             <label>First Name</label>
-            <input type="text" th:field="*{firstName}" required>
+            <input type="text" th:field="*{firstName}">
+            <div class="error-message" th:if="${#fields.hasErrors('firstName')}"
+                 th:errors="*{firstName}"></div>
         </div>
 
         <div class="form-group">
@@ -159,12 +169,16 @@
 
         <div class="form-group">
             <label>Password</label>
-            <input type="password" th:field="*{password}" required>
+            <input type="password" th:field="*{password}">
+            <div class="error-message" th:if="${#fields.hasErrors('password')}"
+                 th:errors="*{password}"></div>
         </div>
 
         <div class="form-group">
             <label>Confirm Password</label>
-            <input type="password" th:field="*{confirmPassword}" required>
+            <input type="password" th:field="*{confirmPassword}">
+            <div class="error-message" th:if="${#fields.hasErrors('confirmPassword')}"
+                 th:errors="*{confirmPassword}"></div>
         </div>
 
         <button type="submit">Create Account</button>

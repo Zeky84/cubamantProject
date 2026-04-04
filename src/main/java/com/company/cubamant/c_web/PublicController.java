@@ -1,27 +1,21 @@
 package com.company.cubamant.c_web;
-import com.company.cubamant.b_service.AuthenticationServiceImpl;
-import com.company.cubamant.b_service.AuthenticationService;
+
 import com.company.cubamant.ab_payload.RegisterRequest;
-import org.springframework.security.crypto.password.PasswordEncoder;
+import com.company.cubamant.b_service.AuthenticationService;
+import jakarta.validation.Valid;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
-import org.springframework.ui.ModelMap;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.ModelAttribute;
-import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.validation.BindingResult;
+import org.springframework.web.bind.annotation.*;
 
 @Controller
 public class PublicController {
 
 	private final AuthenticationService authenticationService;
-	private PasswordEncoder passwordEncoder;
 
-
-	public PublicController( AuthenticationServiceImpl authenticationService, PasswordEncoder passwordEncoder) {
-		this.passwordEncoder = passwordEncoder;
+	public PublicController(AuthenticationService authenticationService) {
 		this.authenticationService = authenticationService;
 	}
-
 
 	@GetMapping("/signin")
 	public String signin() {
@@ -34,13 +28,23 @@ public class PublicController {
 	}
 
 	@GetMapping("/signup")
-	public String signup(ModelMap model) {
-		model.addAttribute("request",new RegisterRequest());
+	public String signup(Model model) {
+		model.addAttribute("request", new RegisterRequest());
 		return "signup";
 	}
+
 	@PostMapping("/signup")
-	public String signupPost(@ModelAttribute("request") RegisterRequest request, Model model) {
-		// UI validation
+	public String signupPost(
+			@Valid @ModelAttribute("request") RegisterRequest request,
+			BindingResult bindingResult,
+			Model model) {
+
+		//  FIELD VALIDATION (automatic)
+		if (bindingResult.hasErrors()) {
+			return "signup";
+		}
+
+		//  CROSS-FIELD VALIDATION
 		if (!request.getPassword().equals(request.getConfirmPassword())) {
 			model.addAttribute("passwordMismatch", true);
 			return "signup";
@@ -50,8 +54,14 @@ public class PublicController {
 			authenticationService.signup(request);
 			return "redirect:/signin";
 
-		} catch (RuntimeException e) {
-			model.addAttribute("userExists", true);
+		} catch (IllegalArgumentException e) {
+
+			if ("EMAIL_EXISTS".equals(e.getMessage())) {
+				model.addAttribute("userExists", true);
+			} else {
+				model.addAttribute("genericError", true);
+			}
+
 			return "signup";
 		}
 	}
