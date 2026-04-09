@@ -134,6 +134,14 @@
             background: #ffecec;
             color: #c62828;
         }
+        .error-message {
+    background: #fee;
+    color: #c33;
+    padding: 10px;
+    margin-bottom: 15px;
+    border-left: 4px solid #c33;
+    border-radius: 5px;
+}
     </style>
 </head>
 
@@ -159,8 +167,8 @@
         Worker created and onboarding email sent.
     </div>
 
-    <div th:if="${param.error}" class="card message error">
-        Email already exists.
+    <div th:if="${workerError}" class="error-message">
+        <p th:text="${workerError}"></p>
     </div>
 
     <!-- CREATE WORKER -->

@@ -94,8 +94,36 @@ public class SecurityConfig {
 				)
 				.logout(logout -> logout
 						.logoutUrl("/logout")
-						.logoutSuccessUrl("/signin")//todo: change to /homepage once the the home view is set-up
-						.deleteCookies("accessToken", "refreshToken", "JSESSIONID", "XSRF-TOKEN")
+						.logoutSuccessHandler((request, response, authentication) -> {
+
+							if (authentication != null) {
+								User user = (User) authentication.getPrincipal();
+
+								logger.info("Logout initiated for user: {}", user.getUsername());
+
+								// CRITICAL: invalidate refresh tokens in DB
+								refreshTokenService.deleteByUserId(user.getId());
+
+								logger.info("All refresh tokens deleted for user: {}", user.getUsername());
+							} else {
+								logger.warn("Logout called without authentication context");
+							}
+
+							// Delete cookies (client-side)
+							Cookie accessCookie = CookieUtils.deleteCookie("accessToken");
+							Cookie refreshCookie = CookieUtils.deleteCookie("refreshToken");
+							Cookie csrfCookie = CookieUtils.deleteCookie("XSRF-TOKEN");
+
+							response.addCookie(accessCookie);
+							response.addCookie(refreshCookie);
+							response.addCookie(csrfCookie);
+
+							logger.info("Cookies cleared: accessToken, refreshToken, XSRF-TOKEN");
+
+							// Redirect after logout
+							response.sendRedirect("/signin?logout");
+
+						})
 						.invalidateHttpSession(true)
 						.clearAuthentication(true)
 				);

@@ -2,6 +2,7 @@ package com.company.cubamant.b_service;
 
 import jakarta.mail.MessagingException;
 import jakarta.mail.internet.MimeMessage;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.mail.javamail.JavaMailSender;
 import org.springframework.mail.javamail.MimeMessageHelper;
 import org.springframework.stereotype.Service;
@@ -12,6 +13,9 @@ import java.io.UnsupportedEncodingException;
 public class EmailServiceImpl implements EmailService {
 
 	private final JavaMailSender mailSender;
+
+	@Value("${company.email}")
+	private String companyEmail;
 
 	public EmailServiceImpl(JavaMailSender mailSender) {
 		this.mailSender = mailSender;
@@ -26,7 +30,7 @@ public class EmailServiceImpl implements EmailService {
 			MimeMessageHelper helper = new MimeMessageHelper(message, true, "UTF-8");
 
 			// ✅ Set FROM (must match authenticated Gmail or alias)
-			helper.setFrom("duqueezequiel90@gmail.com", "Cubamant");
+			helper.setFrom(companyEmail, "Cubamant");
 
 			helper.setTo(to);
 			helper.setSubject("Welcome to Cubamant - Setup Your Account");

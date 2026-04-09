@@ -88,15 +88,29 @@ public class AdminController {
 			@RequestParam String email,
 			@RequestParam String firstName,
 			@RequestParam String lastName,
-			@RequestParam WorkerClassification classification
+			@RequestParam WorkerClassification classification,
+			Model model,
+			Authentication authentication
 	) {
 
-		setupService.createWorkerWithSetupLink(
-				email, firstName, lastName, classification
-		);
+		try {
+			setupService.createWorkerWithSetupLink(
+					email, firstName, lastName, classification
+			);
 
-		return "redirect:/admin/dashboard?workerCreated";
+			return "redirect:/admin/dashboard?workerCreated";
 
+		} catch (IllegalArgumentException e) {
+
+			// 🔥 reload dashboard with error
+			String adminEmail = authentication.getName();
+			model.addAttribute("adminEmail", adminEmail);
+			model.addAttribute("users", userService.findAll());
+
+			model.addAttribute("workerError", e.getMessage());
+
+			return "admin/dashboard";
+		}
 	}
 
 }

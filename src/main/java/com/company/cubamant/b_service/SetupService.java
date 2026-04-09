@@ -90,7 +90,7 @@ public class SetupService {
 	public void createWorkerWithSetupLink(String email, String firstName, String lastName, WorkerClassification classification) {
 
 		if (userService.existsByEmail(email)) {
-			throw new RuntimeException("Email already exists");
+			throw new IllegalArgumentException("Email's worker already exists");
 		}
 
 		logger.info("Creating worker with email: {}", email);
