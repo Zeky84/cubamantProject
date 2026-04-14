@@ -1,4 +1,5 @@
 package com.company.cubamant.repository;
+import java.util.List;
 import java.util.Optional;
 
 import org.springframework.data.jpa.repository.JpaRepository;
@@ -18,4 +19,7 @@ public interface UserRepository extends JpaRepository<User, Long> {
     WHERE u.email = :email
 """)
 	Optional<User> findByEmailWithAuthorities(String email);
+
+	@Query("SELECT DISTINCT u FROM User u LEFT JOIN FETCH u.authoritySet")
+	List<User> findAllWithAuthorities();
 }

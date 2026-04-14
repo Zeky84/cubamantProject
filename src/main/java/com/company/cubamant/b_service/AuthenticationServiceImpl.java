@@ -3,6 +3,7 @@ package com.company.cubamant.b_service;
 import com.company.cubamant.ab_payload.JwtAuthenticationResponse;
 import com.company.cubamant.ab_payload.RegisterRequest;
 import com.company.cubamant.ab_payload.SignInRequest;
+import com.company.cubamant.domain.AccountStatus;
 import com.company.cubamant.domain.User;
 import com.company.cubamant.repository.UserRepository;
 import org.slf4j.Logger;
@@ -96,7 +97,7 @@ public class AuthenticationServiceImpl implements AuthenticationService {
 		user.setFirstName(request.getFirstName());
 		user.setLastName(request.getLastName());
 		user.setEmail(request.getEmail());
-		user.setIsActive(true);
+		user.setStatus(AccountStatus.ACTIVE);
 		user.setPassword(passwordEncoder.encode(request.getPassword()));
 
 		user.setAuthoritySet(new HashSet<>());

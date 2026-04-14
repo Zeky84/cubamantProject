@@ -38,18 +38,9 @@
             align-items: center;
         }
 
-        h1 {
-            color: #667eea;
-        }
-
-        h2 {
-            margin-bottom: 15px;
-            color: #333;
-        }
-
-        p {
-            color: #555;
-        }
+        h1 { color: #667eea; }
+        h2 { margin-bottom: 15px; color: #333; }
+        p { color: #555; }
 
         table {
             width: 100%;
@@ -62,37 +53,14 @@
             text-align: left;
         }
 
-        th {
-            background: #f5f7fa;
-        }
+        th { background: #f5f7fa; }
 
-        tr:nth-child(even) {
-            background: #fafafa;
-        }
-
-        .badge {
-            padding: 5px 10px;
-            border-radius: 6px;
-            font-size: 12px;
-            font-weight: 600;
-        }
-
-        .active {
-            background: #e6ffed;
-            color: #2e7d32;
-        }
-
-        .inactive {
-            background: #ffecec;
-            color: #c62828;
-        }
+        tr:nth-child(even) { background: #fafafa; }
 
         input, select {
-            width: 100%;
-            padding: 10px;
-            border-radius: 8px;
+            padding: 8px;
+            border-radius: 6px;
             border: 2px solid #e1e8ed;
-            margin-bottom: 12px;
         }
 
         input:focus, select:focus {
@@ -100,24 +68,78 @@
             border-color: #667eea;
         }
 
+        /* ===== BUTTON BASE ===== */
         button {
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-            color: white;
             border: none;
-            padding: 10px 16px;
+            padding: 8px 12px;
             border-radius: 8px;
             cursor: pointer;
             font-weight: 600;
+            transition: 0.2s ease;
+            color: white;
         }
 
         button:hover {
             transform: translateY(-1px);
-            box-shadow: 0 5px 15px rgba(102,126,234,0.3);
+            opacity: 0.95;
         }
 
-        .danger {
-            background: #e53935;
+        /* ===== ACTIONS LAYOUT ===== */
+        .actions {
+            display: flex;
+            gap: 6px;
+            align-items: center;
+            flex-wrap: nowrap;
         }
+
+        .actions form {
+            margin: 0;
+        }
+
+        /* ===== BUTTON COLORS ===== */
+        .update { background: #fbc02d; color: #000; }
+        .activate { background: #43a047; }
+        .deactivate { background: #e53935; }
+        .delete { background: #c62828; }
+
+        /* ===== ROLE BADGES ===== */
+        .badge-role {
+            padding: 4px 10px;
+            border-radius: 6px;
+            font-size: 12px;
+            font-weight: 600;
+            margin-right: 4px;
+            display: inline-block;
+            color: white;
+        }
+
+        .role-admin { background: #1e88e5; }
+        .role-superuser { background: #fb8c00; }
+        .role-user { background: #757575; }
+
+        /* ===== STATUS BADGES ===== */
+        .status-active {
+            background: #e6ffed;
+            color: #2e7d32;
+            padding: 4px 10px;
+            border-radius: 6px;
+            font-weight: 600;
+        }
+
+        .status-inactive {
+            background: #ffecec;
+            color: #c62828;
+            padding: 4px 10px;
+            border-radius: 6px;
+            font-weight: 600;
+        }
+            .status-pending {
+        background: #fff8e1;
+        color: #f57c00;
+        padding: 4px 10px;
+        border-radius: 6px;
+        font-weight: 600;
+    }
 
         .message {
             padding: 10px;
@@ -130,18 +152,14 @@
             color: #2e7d32;
         }
 
-        .error {
-            background: #ffecec;
-            color: #c62828;
-        }
         .error-message {
-    background: #fee;
-    color: #c33;
-    padding: 10px;
-    margin-bottom: 15px;
-    border-left: 4px solid #c33;
-    border-radius: 5px;
-}
+            background: #fee;
+            color: #c33;
+            padding: 10px;
+            margin-bottom: 15px;
+            border-left: 4px solid #c33;
+            border-radius: 5px;
+        }
     </style>
 </head>
 
@@ -171,12 +189,31 @@
         <p th:text="${workerError}"></p>
     </div>
 
+    <div th:if="${param.cannotDemoteSelf}" class="error-message">
+        You cannot remove your own admin privileges.
+    </div>
+
+    <div th:if="${param.cannotDeleteSelf}" class="error-message">
+        You cannot delete your own account.
+    </div>
+
+    <div th:if="${param.roleUpdated}" class="message success">
+        Role updated successfully.
+    </div>
+
+    <div th:if="${param.deleted}" class="message success">
+        User deleted successfully.
+    </div>
+
+    <div th:if="${param.cannotToggleSelf}" class="error-message">
+        You cannot change your own account status.
+    </div>
+
     <!-- CREATE WORKER -->
     <div class="card">
         <h2>Create Worker</h2>
 
         <form th:action="@{/admin/workers}" method="post">
-
             <input type="hidden" th:name="${_csrf.parameterName}" th:value="${_csrf.token}"/>
 
             <input type="email" name="email" placeholder="Email" required/>
@@ -205,31 +242,69 @@
             <table>
                 <thead>
                 <tr>
-                    <th>ID</th>
                     <th>Email</th>
                     <th>Name</th>
                     <th>Status</th>
+                    <th>Role</th>
                     <th>Actions</th>
                 </tr>
                 </thead>
 
                 <tbody>
                 <tr th:each="user : ${users}">
-                    <td th:text="${user.id}"></td>
                     <td th:text="${user.email}"></td>
                     <td th:text="${user.firstName + ' ' + user.lastName}"></td>
 
+                    <!-- STATUS -->
+<!--                    <td>-->
+<!--                        <span th:switch="${user.status}">-->
+<!--                            <span th:case="'ACTIVE'" class="status-active">ACTIVE</span>-->
+<!--                            <<span th:case="'PENDING_SETUP'" class="status-pending">PENDING</span>-->
+<!--                            <span th:case="'DISABLED'" class="status-inactive">DISABLED</span>-->
+<!--                        </span>-->
+<!--                    </td>-->
+                    <td th:text="${user.status}"></td>
+
+                    <!-- ROLE -->
                     <td>
-                        <span th:class="${user.isActive} ? 'badge active' : 'badge inactive'"
-                              th:text="${user.isActive} ? 'ACTIVE' : 'PENDING'">
+                        <span th:each="auth : ${user.authoritySet}"
+                              th:text="${#strings.replace(auth.authority, 'ROLE_', '')}"
+                              th:class="${'badge-role ' +
+                                  (auth.authority == 'ROLE_ADMIN' ? 'role-admin' :
+                                   auth.authority == 'ROLE_SUPERUSER' ? 'role-superuser' :
+                                   'role-user')}">
                         </span>
                     </td>
 
-                    <td>
+                    <!-- ACTIONS -->
+                    <td class="actions">
+
+                        <form th:action="@{/admin/users/{id}/role(id=${user.id})}" method="post">
+                            <input type="hidden" th:name="${_csrf.parameterName}" th:value="${_csrf.token}"/>
+                            <select name="role">
+                                <option value="ROLE_USER">User</option>
+                                <option value="ROLE_SUPERUSER">Superuser</option>
+                                <option value="ROLE_ADMIN">Admin</option>
+                            </select>
+                            <button type="submit" class="update">Update</button>
+                        </form>
+
+                        <form th:if="${user.status != 'PENDING_SETUP'}"
+                              th:action="@{/admin/users/{id}/toggle-status(id=${user.id})}"
+                              method="post">
+                            <input type="hidden" th:name="${_csrf.parameterName}" th:value="${_csrf.token}"/>
+
+                            <button type="submit"
+                                    th:text="${user.status == 'ACTIVE'} ? 'Deactivate' : 'Activate'"
+                                    th:class="${user.status == 'ACTIVE'} ? 'deactivate' : 'activate'">
+                            </button>
+                        </form>
+
                         <form th:action="@{/admin/users/{id}/delete(id=${user.id})}" method="post">
                             <input type="hidden" th:name="${_csrf.parameterName}" th:value="${_csrf.token}"/>
-                            <button class="danger" type="submit">Delete</button>
+                            <button type="submit" class="delete">Delete</button>
                         </form>
+
                     </td>
                 </tr>
                 </tbody>
@@ -242,6 +317,3 @@
     </div>
 
 </div>
-
-</body>
-</html>

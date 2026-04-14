@@ -2,6 +2,7 @@ package com.company.cubamant.d_startup;
 
 import com.company.cubamant.b_service.AuthorityService;
 import com.company.cubamant.c_web.AdminController;
+import com.company.cubamant.domain.AccountStatus;
 import com.company.cubamant.domain.User;
 import com.company.cubamant.b_service.UserService;
 import jakarta.annotation.PostConstruct;
@@ -38,7 +39,7 @@ public class DataInitializer {
 				admin.setPassword(passwordEncoder.encode("admin"));
 				admin.setFirstName("admin");
 				admin.setLastName("admin");
-				admin.setIsActive(true);
+				admin.setStatus(AccountStatus.ACTIVE);
 				admin.setCreatedAt(Instant.now());
 				authorityService.assigningRole(admin,"ROLE_ADMIN");
 

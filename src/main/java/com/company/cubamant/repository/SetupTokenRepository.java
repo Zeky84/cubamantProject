@@ -12,4 +12,8 @@ public interface SetupTokenRepository extends JpaRepository<SetupToken, Long> {
 	Optional<SetupToken> findByUser(User user);
 
 	Optional<SetupToken> findByUserId(Long userId);
+
+	void deleteByUserId(Long userId);
+
+	void deleteByUser(User user);
 }

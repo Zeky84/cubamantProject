@@ -100,7 +100,7 @@ public class SetupService {
 		worker.setFirstName(firstName);
 		worker.setLastName(lastName);
 		worker.setJobTitle(classification);
-		worker.setIsActive(false);
+		worker.setStatus(AccountStatus.PENDING_SETUP);
 		worker.setPassword(UUID.randomUUID().toString()); // placeholder
 
 		// Save user first
@@ -128,13 +128,13 @@ public class SetupService {
 
 		User user = setupToken.getUser();
 
-		if (user.getIsActive()) {
+		if (user.getStatus() == AccountStatus.ACTIVE) {
 			throw new RuntimeException("User already activated");
 		}
 
 		// Encode and set password
 		user.setPassword(passwordEncoder.encode(rawPassword));
-		user.setIsActive(true);
+		user.activate();
 		userService.save(user);
 
 		// Consume setup token

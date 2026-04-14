@@ -16,11 +16,13 @@ public class UserServiceImpl implements UserService {
 
 	private final UserRepository userRepository;
 	private final RefreshTokenService refreshTokenService;
+	private final SetupTokenService setupTokenService;
 
 	public UserServiceImpl(UserRepository userRepository,
-						   RefreshTokenService refreshTokenService) {
+						   RefreshTokenService refreshTokenService, SetupTokenService setupTokenService) {
 		this.userRepository = userRepository;
 		this.refreshTokenService = refreshTokenService;
+		this.setupTokenService = setupTokenService;
 	}
 
 	// ✅ SINGLE SOURCE OF AUTHENTICATION
@@ -52,20 +54,14 @@ public class UserServiceImpl implements UserService {
 	}
 
 	@Override
-	@Secured({"ROLE_ADMIN"})
-	public void elevateUserToAdmin(Long id) {
-		// TODO: implement role upgrade if needed
-	}
-
-	@Override
 	@Transactional
 	@Secured({"ROLE_ADMIN"})
 	public void deleteUser(Long id) {
 		User user = userRepository.findById(id)
 				.orElseThrow(() -> new RuntimeException("User not found"));
 
+		setupTokenService.deleteByUser(user);
 		int deletedTokens = refreshTokenService.deleteByUserId(id);
-
 		userRepository.delete(user);
 
 		System.out.println("deleted Tokens: " + deletedTokens);
@@ -74,5 +70,10 @@ public class UserServiceImpl implements UserService {
 	@Override
 	public boolean existsByEmail(String email) {
 		return userRepository.existsByEmail(email);
+	}
+
+	@Override
+	public List<User> findAllWithAuthorities() {
+		return userRepository.findAllWithAuthorities();
 	}
 }

@@ -11,6 +11,8 @@ import java.util.*;
 @Entity
 @Table(name = "users")
 @Inheritance(strategy = InheritanceType.JOINED)
+@Getter
+@Setter
 @Builder
 @NoArgsConstructor
 @AllArgsConstructor
@@ -29,25 +31,59 @@ public class User implements UserDetails {
 	private String firstName;
 	private String lastName;
 
-	private Boolean isActive;
+	// =========================
+	// LIFECYCLE STATE (IMPORTANT)
+	// =========================
+	@Enumerated(EnumType.STRING)
+	@Column(nullable = false)
+	private AccountStatus status;
 
+	// =========================
+	// AUDIT
+	// =========================
 	@Column(name = "created_at", nullable = false, updatable = false)
-	private Instant createdAt = Instant.now();
+	private Instant createdAt;
 
-	// Optional: keep for debugging/reporting
+	@Column(name = "activated_at")
+	private Instant activatedAt;
+
+	// Optional legacy/debug field (you be remove later safely)
 	@Column(name = "user_type", insertable = false, updatable = false)
 	private String userType;
 
-	@OneToMany(mappedBy = "user", fetch = FetchType.LAZY, cascade = CascadeType.ALL)
+	// =========================
+	// ROLES / AUTHORITIES
+	// =========================
+	@OneToMany(mappedBy = "user", fetch = FetchType.LAZY, cascade = CascadeType.ALL, orphanRemoval = true)
 	@Builder.Default
 	private Set<Authority> authoritySet = new HashSet<>();
 
 	@PrePersist
 	public void prePersist() {
 		this.createdAt = Instant.now();
+
+		if (this.status == null) {
+			this.status = AccountStatus.PENDING_SETUP;
+		}
 	}
 
-	// ===== Bidirectional helpers =====
+	// ===== Helpers =====
+
+	public void activate() {
+		this.status = AccountStatus.ACTIVE;
+		this.activatedAt = Instant.now();
+	}
+
+	public void deactivate() {
+		this.status = AccountStatus.DISABLED;
+	}
+
+	public boolean isActiveUser() {
+		return this.status == AccountStatus.ACTIVE;
+	}
+
+	// ===== Authority helpers =====
+
 	public void addAuthority(Authority authority) {
 		authoritySet.add(authority);
 		authority.setUser(this);
@@ -58,7 +94,8 @@ public class User implements UserDetails {
 		authority.setUser(null);
 	}
 
-	// ===== Security =====
+	// ===== Spring Security =====
+
 	@Override
 	public Collection<? extends GrantedAuthority> getAuthorities() {
 		return authoritySet.stream()
@@ -67,44 +104,108 @@ public class User implements UserDetails {
 	}
 
 	@Override
+	public String getPassword() {
+		return password;
+	}
+
+	@Override
 	public String getUsername() {
 		return email;
 	}
 
-	@Override public boolean isAccountNonExpired() { return true; }
-	@Override public boolean isAccountNonLocked() { return true; }
-	@Override public boolean isCredentialsNonExpired() { return true; }
+	@Override
+	public boolean isAccountNonExpired() {
+		return true;
+	}
+
+	@Override
+	public boolean isAccountNonLocked() {
+		return status != AccountStatus.DISABLED;
+	}
+
+	@Override
+	public boolean isCredentialsNonExpired() {
+		return true;
+	}
 
 	@Override
 	public boolean isEnabled() {
-		return Boolean.TRUE.equals(isActive);
+		return status == AccountStatus.ACTIVE;
 	}
 
-	// ===== Getters / Setters =====
-	public Long getId() { return id; }
-	public void setId(Long id) { this.id = id; }
+	public Long getId() {
+		return id;
+	}
 
-	public String getEmail() { return email; }
-	public void setEmail(String email) { this.email = email; }
+	public void setId(Long id) {
+		this.id = id;
+	}
 
-	@Override
-	public String getPassword() { return password; }
-	public void setPassword(String password) { this.password = password; }
+	public String getEmail() {
+		return email;
+	}
 
-	public String getFirstName() { return firstName; }
-	public void setFirstName(String firstName) { this.firstName = firstName; }
+	public void setEmail(String email) {
+		this.email = email;
+	}
 
-	public String getLastName() { return lastName; }
-	public void setLastName(String lastName) { this.lastName = lastName; }
+	public void setPassword(String password) {
+		this.password = password;
+	}
 
-	public Boolean getIsActive() { return isActive; }
-	public void setIsActive(Boolean active) { isActive = active; }
+	public String getFirstName() {
+		return firstName;
+	}
 
-	public Instant getCreatedAt() { return createdAt; }
-	public void setCreatedAt(Instant createdAt) { this.createdAt = createdAt; }
+	public void setFirstName(String firstName) {
+		this.firstName = firstName;
+	}
 
-	public Set<Authority> getAuthoritySet() { return authoritySet; }
-	public void setAuthoritySet(Set<Authority> authoritySet) { this.authoritySet = authoritySet; }
+	public String getLastName() {
+		return lastName;
+	}
 
-	public String getUserType() { return userType; }
+	public void setLastName(String lastName) {
+		this.lastName = lastName;
+	}
+
+	public AccountStatus getStatus() {
+		return status;
+	}
+
+	public void setStatus(AccountStatus status) {
+		this.status = status;
+	}
+
+	public Instant getCreatedAt() {
+		return createdAt;
+	}
+
+	public void setCreatedAt(Instant createdAt) {
+		this.createdAt = createdAt;
+	}
+
+	public Instant getActivatedAt() {
+		return activatedAt;
+	}
+
+	public void setActivatedAt(Instant activatedAt) {
+		this.activatedAt = activatedAt;
+	}
+
+	public String getUserType() {
+		return userType;
+	}
+
+	public void setUserType(String userType) {
+		this.userType = userType;
+	}
+
+	public Set<Authority> getAuthoritySet() {
+		return authoritySet;
+	}
+
+	public void setAuthoritySet(Set<Authority> authoritySet) {
+		this.authoritySet = authoritySet;
+	}
 }

@@ -1,11 +1,12 @@
 package com.company.cubamant.domain;
 import jakarta.persistence.*;
 import lombok.Getter;
+import lombok.NoArgsConstructor;
 
 import java.math.BigDecimal;
 
 @Entity
-
+@NoArgsConstructor
 @Table(name = "workers")
 public class Worker extends User {
 
