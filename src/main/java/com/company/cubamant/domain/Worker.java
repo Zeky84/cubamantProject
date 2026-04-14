@@ -6,7 +6,6 @@ import lombok.NoArgsConstructor;
 import java.math.BigDecimal;
 
 @Entity
-@NoArgsConstructor
 @Table(name = "workers")
 public class Worker extends User {
 
@@ -44,6 +43,8 @@ public class Worker extends User {
 	public void setSupervisor(boolean supervisor) {
 		isSupervisor = supervisor;
 	}
+
+
 
 
 }

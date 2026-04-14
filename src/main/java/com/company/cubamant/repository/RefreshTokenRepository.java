@@ -16,5 +16,4 @@ public interface RefreshTokenRepository extends JpaRepository<RefreshToken, Long
 	@Modifying
 	@Query("DELETE FROM RefreshToken rt WHERE rt.user.id = :userId")
 	int deleteByUserId(@Param("userId") Long userId);//GPT recomends me to return int instead of void, because it will return the number of deleted tokens(rows), which can be useful for debugging and logging purposes.
-	int deleteAllByUserId(Long userId);// alternative method name for deleteByUserId
 }

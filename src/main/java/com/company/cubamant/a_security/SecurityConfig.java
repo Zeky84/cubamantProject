@@ -76,9 +76,9 @@ public class SecurityConfig {
 								response.sendRedirect("/error?unauthorized=true"))
 				)
 				.authorizeHttpRequests(auth -> auth
-						.requestMatchers("/admin/**").hasAnyAuthority("ROLE_ADMIN", "ADMIN") // Acepta ambos formatos
-						.requestMatchers("/api/user/**").hasAnyAuthority("ROLE_USER", "USER","ROLE_SUPERUSER", "SUPERUSER", "ROLE_ADMIN", "ADMIN")
-						.requestMatchers("/", "/signin", "/signup", "/error", "/css/**", "/js/**,","/setup-password/**").permitAll()
+						.requestMatchers("/admin/**").hasAnyAuthority("ROLE_ADMIN") // Remove both formats
+						.requestMatchers("/api/user/**").hasAnyAuthority("ROLE_USER","ROLE_SUPERUSER", "ROLE_ADMIN") // Removed to both formats
+						.requestMatchers("/", "/signin", "/signup", "/error", "/css/**", "/js/**","/setup-password/**").permitAll()
 						.anyRequest().authenticated()
 				)
 				.sessionManagement(session ->
@@ -150,7 +150,7 @@ public class SecurityConfig {
 		logger.info("Successful authentication for user: {}", user.getUsername());
 
 		boolean isAdmin = user.getAuthorities().stream()
-				.anyMatch(auth -> auth.getAuthority().replace("ROLE_", "").equals("ADMIN"));
+				.anyMatch(auth -> auth.getAuthority().equals("ROLE_ADMIN"));
 
 		if (isAdmin) {
 			logger.info("Admin detectado. Redirigiendo a /admin/dashboard");

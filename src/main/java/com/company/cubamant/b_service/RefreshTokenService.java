@@ -92,7 +92,7 @@ public class RefreshTokenService {
 
 	// ===== HANDLE REUSE ATTACK =====
 	@Transactional
-	private void handleReuseAttack(RefreshToken token) {
+	void handleReuseAttack(RefreshToken token) {
 		token.setReused(true);
 		refreshTokenRepository.save(token);
 

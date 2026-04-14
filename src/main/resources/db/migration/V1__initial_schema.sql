@@ -6,8 +6,10 @@ create table users (
     first_name varchar(255) not null,
     last_name varchar(255) not null,
     user_type varchar(31),
-    is_active boolean not null default true,
-    created_at timestamp(6) with time zone not null default now()
+    status varchar(255) not null default 'PENDING_SETUP',
+    constraint users_status_check check (status in ('PENDING_SETUP','ACTIVE','DISABLED')),
+    created_at timestamp(6) with time zone not null default now(),
+    activated_at timestamp(6) with time zone
 );
 
 -- AUTHORITY

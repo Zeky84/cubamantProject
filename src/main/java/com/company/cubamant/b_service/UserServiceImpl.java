@@ -1,12 +1,15 @@
 package com.company.cubamant.b_service;
 
+import com.company.cubamant.c_web.AdminController;
 import com.company.cubamant.domain.User;
 import com.company.cubamant.repository.UserRepository;
+import org.slf4j.LoggerFactory;
 import org.springframework.security.access.annotation.Secured;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import org.slf4j.Logger;
 
 import java.util.List;
 import java.util.Optional;
@@ -17,12 +20,15 @@ public class UserServiceImpl implements UserService {
 	private final UserRepository userRepository;
 	private final RefreshTokenService refreshTokenService;
 	private final SetupTokenService setupTokenService;
+	private final AuthorityService authorityService;
+	private static final Logger logger = LoggerFactory.getLogger(AdminController.class);
 
 	public UserServiceImpl(UserRepository userRepository,
-						   RefreshTokenService refreshTokenService, SetupTokenService setupTokenService) {
+						   RefreshTokenService refreshTokenService, SetupTokenService setupTokenService, AuthorityService authorityService) {
 		this.userRepository = userRepository;
 		this.refreshTokenService = refreshTokenService;
 		this.setupTokenService = setupTokenService;
+		this.authorityService = authorityService;
 	}
 
 	// ✅ SINGLE SOURCE OF AUTHENTICATION
@@ -64,7 +70,7 @@ public class UserServiceImpl implements UserService {
 		int deletedTokens = refreshTokenService.deleteByUserId(id);
 		userRepository.delete(user);
 
-		System.out.println("deleted Tokens: " + deletedTokens);
+		logger.info("Deleted {} refresh tokens for userId: {}", deletedTokens, id);
 	}
 
 	@Override
@@ -75,5 +81,26 @@ public class UserServiceImpl implements UserService {
 	@Override
 	public List<User> findAllWithAuthorities() {
 		return userRepository.findAllWithAuthorities();
+	}
+
+	@Override
+	@Transactional
+	@Secured("ROLE_ADMIN")
+	public void updateUserRole(Long userId, String newRole, String currentAdminEmail) {
+
+		User user = userRepository.findById(userId)
+				.orElseThrow(() -> new RuntimeException("User not found"));
+
+		// 🔒 Prevent admin from demoting themselves
+		if (user.getEmail().equals(currentAdminEmail) && !newRole.equals("ROLE_ADMIN")) {
+			throw new IllegalArgumentException("CANNOT_DEMOTE_SELF");
+		}
+
+		// Remove existing roles and assign new one
+		user.getAuthoritySet().clear();
+		authorityService.assigningRole(user, newRole);
+		userRepository.save(user);
+
+		logger.info("Admin {} updated role of user {} to {}", currentAdminEmail, user.getEmail(), newRole);
 	}
 }

@@ -22,4 +22,6 @@ public interface UserService extends UserDetailsService {
 
 
 	List<User> findAllWithAuthorities();
+
+	void updateUserRole(Long userId, String role, String adminEmail);
 }

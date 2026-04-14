@@ -11,11 +11,6 @@ import java.util.*;
 @Entity
 @Table(name = "users")
 @Inheritance(strategy = InheritanceType.JOINED)
-@Getter
-@Setter
-@Builder
-@NoArgsConstructor
-@AllArgsConstructor
 public class User implements UserDetails {
 
 	@Id

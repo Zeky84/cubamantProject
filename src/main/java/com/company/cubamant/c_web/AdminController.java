@@ -10,7 +10,6 @@ import org.slf4j.LoggerFactory;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Controller;
-import org.springframework.transaction.annotation.Transactional;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.*;
 
@@ -46,35 +45,19 @@ public class AdminController {
 		return "admin/dashboard";
 	}
 
-	@Transactional
 	@PostMapping("/users/{id}/role")
 	public String updateUserRole(
 			@PathVariable Long id,
 			@RequestParam String role,
 			Authentication authentication
 	) {
-
-		Optional<User> userOpt = userService.findUserById(id);
-
-		if (userOpt.isPresent()) {
-			User user = userOpt.get();
-
-			String currentAdminEmail = authentication.getName();
-
-			// 🔒 PREVENT ADMIN FROM DEMOTING THEMSELVES
-			if (user.getEmail().equals(currentAdminEmail) && !role.equals("ROLE_ADMIN")) {
+		try {
+			userService.updateUserRole(id, role, authentication.getName());
+		} catch (IllegalArgumentException e) {
+			if ("CANNOT_DEMOTE_SELF".equals(e.getMessage())) {
 				return "redirect:/admin/dashboard?cannotDemoteSelf";
 			}
-
-			// Remove existing roles
-			user.getAuthoritySet().clear();
-
-			// Assign new role
-			authorityService.assigningRole(user, role);
-			userService.save(user);
-			logger.info("Admin {} updated role of user {} to {}", currentAdminEmail, user.getEmail(), role);
 		}
-
 		return "redirect:/admin/dashboard";
 	}
 
@@ -116,7 +99,7 @@ public class AdminController {
 
 		} catch (IllegalArgumentException e) {
 
-			// 🔥 reload dashboard with error
+			// reload dashboard with error
 			String adminEmail = authentication.getName();
 			model.addAttribute("adminEmail", adminEmail);
 			model.addAttribute("users", userService.findAllWithAuthorities());

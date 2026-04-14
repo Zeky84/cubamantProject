@@ -44,40 +44,6 @@ public class AuthenticationServiceImpl implements AuthenticationService {
 		this.authorityService = authorityService;
 	}
 
-// COMMENTED CAUSE OF THE CHANGE TO THE SIGNUP METHOD TO USE THE RegisterRequest DTO instead of the SignUpRequest RECORD
-// DTO OVER DTO-RECORD TO AVOID THYMELEAF PROBLEMS
-//	@Override
-//	public JwtAuthenticationResponse signup(SignUpRequest request) {
-//
-//		if (userService.existsByEmail(request.email())) {
-//			throw new RuntimeException("Email already exists");
-//		}
-//		// Create user without builder
-//		User user = new User();
-//		user.setFirstName(request.firstName());
-//		user.setLastName(request.lastName());
-//		user.setEmail(request.email());
-//		user.setPassword(passwordEncoder.encode(request.password()));
-//
-//		// Initialize the set
-//		user.setAuthoritySet(new HashSet<>());
-//
-//		// Add authorities
-//		user.getAuthoritySet().add(new Authority("USER", user));
-//
-//		request.authorityOpt().ifPresent(auth ->
-//				user.getAuthoritySet().add(new Authority(auth, user)));
-//
-//		userRepository.save(user);
-//
-//		String jwt = jwtService.generateToken(user);
-//		var refreshToken = refreshTokenService.createRefreshToken(user.getId());
-//
-//		logger.info("New user registered: {}", user.getEmail());
-//
-//		return new JwtAuthenticationResponse(jwt, refreshToken.getToken());
-//	}
-
 	@Override
 	public JwtAuthenticationResponse signup(RegisterRequest request) {
 
