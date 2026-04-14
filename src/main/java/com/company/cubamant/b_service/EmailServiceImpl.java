@@ -5,7 +5,10 @@ import jakarta.mail.internet.MimeMessage;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.mail.javamail.JavaMailSender;
 import org.springframework.mail.javamail.MimeMessageHelper;
+import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Service;
+import org.slf4j.Logger;
+
 
 import java.io.UnsupportedEncodingException;
 
@@ -14,6 +17,8 @@ public class EmailServiceImpl implements EmailService {
 
 	private final JavaMailSender mailSender;
 
+	private static final Logger logger = org.slf4j.LoggerFactory.getLogger(EmailServiceImpl.class);
+
 	@Value("${company.email}")
 	private String companyEmail;
 
@@ -21,31 +26,22 @@ public class EmailServiceImpl implements EmailService {
 		this.mailSender = mailSender;
 	}
 
+	@Async
 	@Override
 	public void sendWorkerSetup(String to, String link) {
 		try {
 			MimeMessage message = mailSender.createMimeMessage();
-
-			// 🔥 IMPORTANT: specify encoding to avoid charset issues
 			MimeMessageHelper helper = new MimeMessageHelper(message, true, "UTF-8");
-
-			// ✅ Set FROM (must match authenticated Gmail or alias)
 			helper.setFrom(companyEmail, "Cubamant");
-
 			helper.setTo(to);
 			helper.setSubject("Welcome to Cubamant - Setup Your Account");
-
-			String content = buildHtmlContent(link);
-
-			helper.setText(
-					"Visit this link to setup your account: " + link,
-					content
-			);
-
+			helper.setText("Visit this link to setup your account: " + link, buildHtmlContent(link));
 			mailSender.send(message);
 
 		} catch (MessagingException | UnsupportedEncodingException e) {
-			throw new RuntimeException("Error sending email", e);
+			// ✅ Must log, not throw — @Async runs in a separate thread,
+			// any exception thrown here is silently swallowed and never reaches the caller
+			logger.error("Failed to send setup email to {}: {}", to, e.getMessage());
 		}
 	}
 

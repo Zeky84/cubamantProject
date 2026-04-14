@@ -1,4 +1,4 @@
-package com.company.cubamant.a_security;
+package com.company.cubamant.a_securityandconfigs;
 import com.company.cubamant.b_service.JwtService;
 import com.company.cubamant.domain.RefreshToken;
 import com.company.cubamant.domain.User;

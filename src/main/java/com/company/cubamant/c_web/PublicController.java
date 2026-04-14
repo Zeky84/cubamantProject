@@ -34,34 +34,24 @@ public class PublicController {
 	}
 
 	@PostMapping("/signup")
-	public String signupPost(
-			@Valid @ModelAttribute("request") RegisterRequest request,
-			BindingResult bindingResult,
-			Model model) {
+	public String signup(@Valid @ModelAttribute("request") RegisterRequest request,
+						 BindingResult bindingResult,
+						 Model model) {
 
-		//  FIELD VALIDATION (automatic)
 		if (bindingResult.hasErrors()) {
-			return "signup";
-		}
-
-		//  CROSS-FIELD VALIDATION
-		if (!request.getPassword().equals(request.getConfirmPassword())) {
-			model.addAttribute("passwordMismatch", true);
-			return "signup";
+			// Spring MVC already populated field errors from @Valid
+			return "signup"; // return to form view with errors
 		}
 
 		try {
 			authenticationService.signup(request);
-			return "redirect:/signin";
+			return "redirect:/signin?registered";
 
 		} catch (IllegalArgumentException e) {
-
+			// Only business logic exceptions should reach here now
 			if ("EMAIL_EXISTS".equals(e.getMessage())) {
-				model.addAttribute("userExists", true);
-			} else {
-				model.addAttribute("genericError", true);
+				model.addAttribute("emailError", "Email already registered");
 			}
-
 			return "signup";
 		}
 	}

@@ -51,14 +51,6 @@ public class AuthenticationServiceImpl implements AuthenticationService {
 			throw new IllegalArgumentException("EMAIL_EXISTS");
 		}
 
-		if (!request.getPassword().equals(request.getConfirmPassword())) {
-			throw new IllegalArgumentException("PASSWORD_MISMATCH");
-		}
-
-		if (request.getPassword().length() < 8) {
-			throw new IllegalArgumentException("PASSWORD_TOO_SHORT");
-		}
-
 		User user = new User();
 		user.setFirstName(request.getFirstName());
 		user.setLastName(request.getLastName());

@@ -1,9 +1,11 @@
 package com.company.cubamant.ab_payload;
 
+import com.company.cubamant.da_validator.PasswordMatch;
 import jakarta.validation.constraints.Email;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.Size;
 
+@PasswordMatch(message = "Passwords do not match")
 public class RegisterRequest {
 
 	@NotBlank(message = "First name is required")

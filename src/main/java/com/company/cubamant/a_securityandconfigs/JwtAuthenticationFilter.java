@@ -1,4 +1,4 @@
-package com.company.cubamant.a_security;
+package com.company.cubamant.a_securityandconfigs;
 import java.io.IOException;
 
 import com.company.cubamant.b_service.JwtService;
