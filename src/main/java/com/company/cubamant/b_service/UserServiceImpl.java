@@ -31,7 +31,7 @@ public class UserServiceImpl implements UserService {
 		this.authorityService = authorityService;
 	}
 
-	// ✅ SINGLE SOURCE OF AUTHENTICATION
+	// SINGLE SOURCE OF AUTHENTICATION
 	@Override
 	public UserDetails loadUserByUsername(String email) {
 		return userRepository.findByEmailWithAuthorities(email)
@@ -91,13 +91,22 @@ public class UserServiceImpl implements UserService {
 		User user = userRepository.findById(userId)
 				.orElseThrow(() -> new RuntimeException("User not found"));
 
-		// 🔒 Prevent admin from demoting themselves
 		if (user.getEmail().equals(currentAdminEmail) && !newRole.equals("ROLE_ADMIN")) {
 			throw new IllegalArgumentException("CANNOT_DEMOTE_SELF");
 		}
 
-		// Remove existing roles and assign new one
+		// Short-circuit: user already has this role, nothing to do
+		boolean alreadyHasRole = user.getAuthoritySet().stream()
+				.anyMatch(a -> a.getAuthority().equals(newRole));
+
+		if (alreadyHasRole) {
+			logger.info("User {} already has role {}, skipping update", user.getEmail(), newRole);
+			return;
+		}
+
 		user.getAuthoritySet().clear();
+		userRepository.saveAndFlush(user); // Force DELETE to DB before INSERT
+
 		authorityService.assigningRole(user, newRole);
 		userRepository.save(user);
 
